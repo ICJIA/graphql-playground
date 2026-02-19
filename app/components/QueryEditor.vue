@@ -15,6 +15,7 @@ const workspaceStore = useWorkspaceStore()
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editorView: EditorView | null = null
+let updatingFromStore = false
 
 const emit = defineEmits<{
   execute: []
@@ -40,7 +41,7 @@ function createEditor(doc: string) {
   ])
 
   const updateListener = EditorView.updateListener.of((update) => {
-    if (update.docChanged) {
+    if (update.docChanged && !updatingFromStore) {
       const value = update.state.doc.toString()
       const tab = workspaceStore.activeTab
       if (tab) {
@@ -79,6 +80,22 @@ watch(
     const tab = workspaceStore.activeTab
     if (tab) {
       createEditor(tab.query)
+    }
+  }
+)
+
+// Sync external query changes (e.g. prettify, history) into the editor
+watch(
+  () => workspaceStore.activeTab?.query,
+  (newQuery) => {
+    if (!editorView || newQuery == null) return
+    const current = editorView.state.doc.toString()
+    if (current !== newQuery) {
+      updatingFromStore = true
+      editorView.dispatch({
+        changes: { from: 0, to: editorView.state.doc.length, insert: newQuery }
+      })
+      updatingFromStore = false
     }
   }
 )

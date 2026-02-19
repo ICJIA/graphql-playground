@@ -3,6 +3,7 @@ export function useGraphQL() {
   const endpointsStore = useEndpointsStore()
   const workspaceStore = useWorkspaceStore()
   const toast = useToast()
+  const { addEntry } = useHistory()
 
   const isExecuting = ref(false)
 
@@ -42,6 +43,12 @@ export function useGraphQL() {
 
       workspaceStore.updateTab(endpoint.url, tab.id, {
         results: JSON.stringify(result, null, 2)
+      })
+
+      addEntry({
+        query: tab.query,
+        variables: tab.variables,
+        endpoint: endpoint.url
       })
     } catch (error: any) {
       const errorResult = {
