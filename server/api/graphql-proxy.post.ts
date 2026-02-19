@@ -9,32 +9,15 @@
  * called from external sites or scripts (origin/referer validation).
  */
 
-// Allowed origins for the proxy (add your production domain here)
-const ALLOWED_ORIGINS = [
-  'https://graphql-playground-updated.netlify.app',
-  'http://localhost:3000',
-  'http://localhost:3001'
-]
+import { playgroundConfig } from '../../app/playground.config'
 
-const ALLOWED_HEADERS = [
-  'authorization',
-  'content-type',
-  'accept',
-  'x-api-key',
-  'x-request-id'
-]
-
-const BLOCKED_HOSTNAMES = [
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  '[::1]',
-  'metadata.google.internal',
-  '169.254.169.254'
-]
-
-const MAX_QUERY_LENGTH = 100_000 // 100KB
-const REQUEST_TIMEOUT = 30_000 // 30s
+const {
+  allowedOrigins: ALLOWED_ORIGINS,
+  allowedHeaders: ALLOWED_HEADERS,
+  blockedHostnames: BLOCKED_HOSTNAMES,
+  maxQueryLength: MAX_QUERY_LENGTH,
+  requestTimeout: REQUEST_TIMEOUT
+} = playgroundConfig.proxy
 
 function isPrivateIP(hostname: string): boolean {
   // Block private/reserved IP ranges (SSRF protection)

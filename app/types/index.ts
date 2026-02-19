@@ -19,3 +19,8 @@ export interface Workspace {
 }
 
 export type WorkspaceMap = Record<string, Workspace>
+
+export interface PlaygroundSettings {
+  editorFontSize: number
+  autocomplete: boolean
+}

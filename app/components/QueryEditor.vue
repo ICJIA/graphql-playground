@@ -1,26 +1,35 @@
 <!-- app/components/QueryEditor.vue -->
 <template>
-  <div ref="editorContainer" class="h-full w-full overflow-hidden" />
+  <div ref="editorContainer" class="h-full w-full overflow-hidden bg-gray-900" />
 </template>
 
 <script setup lang="ts">
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { graphql, updateSchema } from 'cm6-graphql'
 import { keymap } from '@codemirror/view'
 
 const endpointsStore = useEndpointsStore()
 const workspaceStore = useWorkspaceStore()
+const settingsStore = useSettingsStore()
 const schemaState = inject<ReturnType<typeof useSchema>>('schemaState')!
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editorView: EditorView | null = null
 let updatingFromStore = false
+const fontSizeCompartment = new Compartment()
 
 const emit = defineEmits<{
   execute: []
 }>()
+
+function fontSizeTheme(size: number) {
+  return EditorView.theme({
+    '.cm-content': { fontSize: `${size}px` },
+    '.cm-gutters': { fontSize: `${size}px` }
+  })
+}
 
 function createEditor(doc: string) {
   if (editorView) {
@@ -64,9 +73,11 @@ function createEditor(doc: string) {
         ...graphql(schemaState.schema.value || undefined),
         executeKeymap,
         updateListener,
+        fontSizeCompartment.of(fontSizeTheme(settingsStore.editorFontSize)),
         EditorView.theme({
-          '&': { height: '100%' },
-          '.cm-scroller': { overflow: 'auto' }
+          '&': { height: '100%', backgroundColor: '#111827' },
+          '.cm-scroller': { overflow: 'auto' },
+          '.cm-gutters': { backgroundColor: '#111827', borderRight: '1px solid #1f2937' }
         })
       ]
     }),
@@ -91,6 +102,18 @@ watch(
   (newSchema) => {
     if (editorView) {
       updateSchema(editorView, newSchema || undefined)
+    }
+  }
+)
+
+// Update font size when settings change
+watch(
+  () => settingsStore.editorFontSize,
+  (newSize) => {
+    if (editorView) {
+      editorView.dispatch({
+        effects: fontSizeCompartment.reconfigure(fontSizeTheme(newSize))
+      })
     }
   }
 )

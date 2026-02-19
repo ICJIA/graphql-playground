@@ -2,7 +2,7 @@
 
 A modern, configurable GraphQL playground built with Nuxt 4, Nuxt UI 4, and CodeMirror 6. Works with any GraphQL endpoint — particularly useful for Strapi APIs — and solves the CORS problem with a built-in serverless proxy.
 
-**Live:** [https://graphql-playground-updated.netlify.app](https://graphql-playground-updated.netlify.app)
+**Live:** [https://icjia-graphql-playground.netlify.app](https://icjia-graphql-playground.netlify.app)
 
 ---
 
@@ -12,27 +12,45 @@ Most GraphQL APIs include a built-in playground (the classic [Prisma GraphQL Pla
 
 This project is a standalone replacement that you host yourself. Point it at any GraphQL endpoint, run queries, browse the schema, and save your work — all from a modern, dark-themed interface.
 
-### What makes this different from the classic playground?
+### Why use this instead of the default playground?
+
+The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with your API server. They're convenient but limited — locked to one endpoint, no persistence, no CORS proxy, minimal customization. This project exists because developer tools should adapt to how you work, not the other way around.
+
+**Advantages of this playground:**
+
+- **Multi-endpoint** — Switch between production, staging, and local APIs from one tool. Each endpoint remembers its own tabs, queries, variables, and bearer token.
+- **Zero CORS headaches** — The built-in serverless proxy means you never have to configure CORS headers on the target API. Connect to any public GraphQL endpoint instantly.
+- **Persistent workspaces** — Close the browser, come back tomorrow, and everything is exactly where you left it. Queries, results, tokens — all saved automatically.
+- **Schema-aware autocomplete** — Press `Ctrl+Space` to get context-aware field suggestions powered by the introspected schema. The classic playground has this too, but here it works across all your endpoints.
+- **Modern editor** — CodeMirror 6 with adjustable font size, one-dark theme, and bracket matching.
+- **Export & portability** — Download query results as JSON files, copy curl commands, export/import your entire workspace configuration.
+- **Deployable anywhere** — Host it on Netlify, Vercel, Cloudflare, or any platform that supports serverless functions.
+
+**When you should stick with the default:**
+
+- **Zero-setup convenience** — The default playground is already running at your API's `/graphql` endpoint. No deployment needed.
+- **Server-side features** — Some built-in playgrounds support subscriptions (WebSocket) out of the box. This project doesn't currently support subscriptions.
+- **Offline or air-gapped environments** — If your API is on a private network with no external access, the default playground (served by the API itself) is the only option.
+- **Very large schemas** — While this project handles large schemas (with warnings at 500+ types), the default playground running on the same server may be slightly faster for extremely large schemas since there's no proxy hop.
+
+### Feature comparison
 
 | Feature | Classic Playground | This Project |
 |---------|-------------------|--------------|
 | Endpoint configuration | Hardcoded by the backend | User enters any URL at runtime |
 | Multiple endpoints | No | Yes — saved endpoints with instant switching |
 | Per-endpoint workspaces | No | Yes — each endpoint has its own tabs, queries, and auth |
+| Schema-aware autocomplete | Yes (single endpoint) | Yes (all endpoints, via `Ctrl+Space`) |
 | Schema documentation | Basic sidebar | Searchable sidebar with type navigation and SDL view |
 | Large schema handling | Slows down or crashes | Warns at 500+ types, lazy rendering |
 | Bearer token management | Shared JSON header panel | Dedicated token input, saved per-endpoint |
 | CORS handling | Requires backend config | Built-in serverless proxy, works with any endpoint |
 | State persistence | Session only | Full localStorage persistence across browser sessions |
+| Download results | No | Yes — JSON download and clipboard copy |
+| Settings & customization | None | Font size, autocomplete toggle, data export/import |
+| Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-
-### Who is this for?
-
-- **Developers working with Strapi** who want a better query testing experience
-- **API consumers** who need to explore multiple GraphQL endpoints from one tool
-- **Teams** who want a shared, branded playground deployed on their own infrastructure
-- **Anyone** who finds the classic playground too limited or outdated
 
 ---
 
@@ -42,9 +60,12 @@ This project is a standalone replacement that you host yourself. Point it at any
 - **Saved endpoints** — previously used endpoints appear in a dropdown for instant switching
 - **Per-endpoint workspaces** — each endpoint has its own query tabs, variables, and bearer token
 - **Multi-tab queries** — open multiple query tabs per endpoint, rename them, close them
-- **CodeMirror 6 editor** — GraphQL syntax highlighting, bracket matching, line numbers
+- **Schema-aware autocomplete** — press `Ctrl+Space` for context-aware field and type suggestions
+- **CodeMirror 6 editor** — GraphQL syntax highlighting, bracket matching, adjustable font size
 - **Query execution** — click the play button or press `Ctrl+Enter` / `Cmd+Enter`
 - **Pretty-printed results** — formatted JSON output in the results panel
+- **Copy results** — copy JSON results to clipboard with one click
+- **Download results** — download the JSON response as a file
 - **Schema introspection** — automatic schema fetching when you connect to an endpoint
 - **Schema documentation sidebar** — searchable, collapsible view of Queries, Mutations, and Types
 - **Schema SDL view** — raw Schema Definition Language for reference
@@ -55,7 +76,10 @@ This project is a standalone replacement that you host yourself. Point it at any
 - **Query history** — browse and re-run previously executed queries (per-endpoint)
 - **Copy CURL** — generate a ready-to-paste `curl` command for the current query
 - **CORS proxy** — all requests go through a serverless function, so any endpoint works regardless of CORS headers
+- **Settings panel** — adjust editor font size, toggle autocomplete, export/import data, clear all saved data
+- **Quick-start guide** — example endpoints and usage instructions shown on first launch
 - **Full persistence** — everything is saved to `localStorage` and restored when you return
+- **Export / Import** — export all saved data as JSON, import on another machine
 - **Large schema detection** — warns when a schema exceeds 500 types and suggests the native playground
 - **Dark theme** — optimized for extended use
 
@@ -65,11 +89,11 @@ This project is a standalone replacement that you host yourself. Point it at any
 
 ### Try the live version
 
-Visit [https://graphql-playground-updated.netlify.app](https://graphql-playground-updated.netlify.app) and enter a GraphQL endpoint URL to get started. Try one of these public endpoints:
+Visit [https://icjia-graphql-playground.netlify.app](https://icjia-graphql-playground.netlify.app) and enter a GraphQL endpoint URL to get started. Try one of these public endpoints:
 
 ```
-https://spac.icjia-api.cloud/graphql
 https://countries.trevorblades.com/graphql
+https://spac.icjia-api.cloud/graphql
 ```
 
 ### Run locally
@@ -142,11 +166,36 @@ yarn preview
 
 The build outputs to `.output/` and includes both the static SPA and the Netlify serverless function for the proxy.
 
+### Run tests
+
+```bash
+# Run all tests
+yarn test
+
+# Run tests in watch mode
+yarn test:watch
+```
+
+---
+
+## Configuration
+
+All build-time constants are centralized in `playground.config.ts` at the project root. This is the single source of truth for:
+
+- App metadata (name, version, URLs)
+- Proxy security settings (allowed origins, headers, blocked hosts, limits)
+- Schema thresholds
+- localStorage key names
+- Default runtime settings
+- Example endpoints shown in the quick-start guide
+
+Runtime user preferences (font size, autocomplete toggle) are managed in the Settings panel and persisted to localStorage.
+
 ---
 
 ## Deployment
 
-This project is designed for [Netlify](https://www.netlify.com/) but can be adapted for other platforms.
+This project is deployed on [Netlify Pro](https://www.netlify.com/) but can be adapted for other platforms.
 
 ### Deploy to Netlify (recommended)
 
@@ -243,8 +292,9 @@ All user data is stored in the browser's `localStorage`. Nothing is sent to any 
 | `gql-playground-active-endpoint` | Currently selected endpoint URL |
 | `gql-playground-workspaces` | Per-endpoint tabs with query content, variables, and results |
 | `gql-playground-history` | Query execution history (last 50 entries per endpoint) |
+| `gql-playground-settings` | User preferences (font size, autocomplete toggle) |
 
-To clear all saved data, open browser DevTools > Application > Local Storage and delete the keys, or use the settings menu in the app.
+To clear all saved data, use the Settings panel (gear icon) or open browser DevTools > Application > Local Storage and delete the keys.
 
 ---
 
@@ -265,20 +315,37 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 | **Request timeout** | Upstream requests time out after 30 seconds. |
 | **POST only** | The proxy only accepts POST requests (enforced by Nitro's `.post.ts` file naming). |
 
+All security constants are defined in `playground.config.ts` and imported by the proxy at build time.
+
+### Netlify Pro plan protections
+
+This project is deployed on Netlify Pro, which provides additional platform-level protections:
+
+| Feature | Details |
+|---------|---------|
+| **DDoS protection** | Automatic Layer 3/4 and Layer 7 DDoS mitigation across the entire CDN. This is included on all Netlify plans (Free and Pro). |
+| **Serverless function limits** | 60-second timeout, 1024 MB memory, 6 MB request payload. Same across all plans. |
+| **Rate limiting** | Up to 5 code-based rate limiting rules per project (vs 2 on Free). |
+| **Secrets controller** | Write-only environment variables with automatic secret detection that fails builds if credentials are exposed. |
+| **Visitor access control** | Password-protect non-production deploys. |
+| **Extended logging** | 7-day function log retention (vs 24 hours on Free). |
+
+**Note:** Full WAF (Web Application Firewall) with OWASP rules is available only on Netlify Enterprise. For Pro, the proxy's own validation logic (origin checks, SSRF blocking, header filtering) provides the application-layer security.
+
 ### What the proxy does NOT protect against
 
 - **Authentication bypass** — The proxy forwards your bearer token to the target API. If the API is misconfigured (e.g., allows unauthenticated writes), the proxy won't stop you. **Security is the target API's responsibility** (e.g., Strapi's role-based permissions).
-- **Per-user rate limiting** — There is no per-user rate limiting in the proxy itself. Netlify applies [platform-level rate limits](https://docs.netlify.com/functions/get-started/?fn-lang=ts#rate-limiting) to serverless functions (125K requests/month on the free tier, 2M on Pro). The free tier should be fine for personal/team use. Move to Pro if you expect heavy shared usage.
-- **Domain allowlisting** — By default, the proxy allows requests to any public HTTPS endpoint with `graphql` in the path. If you want to restrict it to specific domains, add an allowlist:
+- **Per-user rate limiting** — There is no per-user rate limiting in the proxy itself. Netlify applies platform-level limits to serverless functions. The Pro plan is more than sufficient for team use.
+- **Domain allowlisting** — By default, the proxy allows requests to any public HTTPS endpoint with `graphql` in the path. If you want to restrict it to specific domains, add an allowlist in `playground.config.ts`:
 
 ```typescript
-// In server/api/graphql-proxy.post.ts
-const ALLOWED_DOMAINS = [
+// In playground.config.ts, add to the proxy section:
+allowedDomains: [
   'spac.icjia-api.cloud',
   'my-strapi.example.com'
 ]
 
-// Add this check after URL parsing:
+// Then in server/api/graphql-proxy.post.ts, add a check after URL parsing:
 if (!ALLOWED_DOMAINS.includes(parsedUrl.hostname)) {
   throw createError({
     statusCode: 403,
@@ -298,6 +365,7 @@ if (!ALLOWED_DOMAINS.includes(parsedUrl.hostname)) {
 
 ```
 graphql-playground/
+├── playground.config.ts          # Single source of truth: build-time constants & defaults
 ├── app/
 │   ├── assets/css/
 │   │   ├── main.css              # Tailwind CSS + Nuxt UI imports, global styles
@@ -305,12 +373,14 @@ graphql-playground/
 │   ├── components/
 │   │   ├── PlaygroundLayout.vue  # Main page layout with split panes
 │   │   ├── EndpointSelector.vue  # URL input + saved endpoints dropdown
+│   │   ├── WelcomeGuide.vue     # Quick-start guide shown when no endpoint is connected
 │   │   ├── TabBar.vue            # Per-endpoint query tabs
-│   │   ├── QueryEditor.vue       # CodeMirror 6 GraphQL editor
-│   │   ├── ResultsPanel.vue      # Pretty-printed JSON results
+│   │   ├── QueryEditor.vue       # CodeMirror 6 GraphQL editor with autocomplete
+│   │   ├── ResultsPanel.vue      # JSON results with copy and download buttons
 │   │   ├── BottomPanels.vue      # Variables + HTTP Headers panels
 │   │   ├── ToolbarActions.vue    # Prettify, History, Copy CURL buttons
 │   │   ├── HistoryModal.vue      # Query history browser
+│   │   ├── SettingsModal.vue     # App settings (font size, autocomplete, data management)
 │   │   ├── SchemaSidebar.vue     # Schema documentation slide-out panel
 │   │   ├── SchemaSection.vue     # Collapsible Queries/Mutations section
 │   │   └── SchemaTypeDetail.vue  # Expandable type detail view
@@ -320,7 +390,8 @@ graphql-playground/
 │   │   └── useHistory.ts         # Query history management
 │   ├── stores/
 │   │   ├── endpoints.ts          # Pinia store: saved endpoints
-│   │   └── workspace.ts          # Pinia store: per-endpoint workspaces
+│   │   ├── workspace.ts          # Pinia store: per-endpoint workspaces
+│   │   └── settings.ts           # Pinia store: user preferences
 │   ├── types/
 │   │   └── index.ts              # TypeScript interfaces
 │   ├── pages/
@@ -329,10 +400,15 @@ graphql-playground/
 ├── server/
 │   └── api/
 │       └── graphql-proxy.post.ts # Serverless CORS proxy with security hardening
+├── tests/                        # Vitest test suites
+│   ├── unit/                     # Store, composable, and config tests
+│   ├── components/               # Vue component tests
+│   └── api/                      # Server route tests
 ├── docs/
 │   └── plans/                    # Design and implementation planning documents
 ├── nuxt.config.ts                # Nuxt configuration (SPA mode, dark theme, Netlify preset)
 ├── netlify.toml                  # Netlify build and deploy configuration
+├── vitest.config.ts              # Vitest configuration
 ├── package.json                  # Dependencies and scripts
 ├── .nvmrc                        # Node.js version (22.14.0)
 └── yarn.lock                     # Dependency lock file
@@ -348,13 +424,14 @@ graphql-playground/
 | [Vue](https://vuejs.org) | 3.5.x | Reactive UI framework |
 | [Nuxt UI](https://ui.nuxt.com) | 4.4.x | Component library (buttons, modals, inputs, slideouts, toasts) |
 | [Tailwind CSS](https://tailwindcss.com) | 4.x | Utility-first CSS framework |
-| [CodeMirror](https://codemirror.net) | 6.x | Code editor with GraphQL syntax highlighting |
+| [CodeMirror](https://codemirror.net) | 6.x | Code editor with GraphQL syntax highlighting and autocomplete |
 | [cm6-graphql](https://www.npmjs.com/package/cm6-graphql) | 0.2.x | GraphQL language support for CodeMirror 6 |
 | [graphql](https://www.npmjs.com/package/graphql) | 16.x | GraphQL schema parsing, introspection, prettify |
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Netlify](https://www.netlify.com) | — | Hosting (static files + serverless functions) |
+| [Vitest](https://vitest.dev) | 3.x | Unit and component testing |
+| [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |
 
 ---
 
@@ -363,6 +440,7 @@ graphql-playground/
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+Enter` / `Cmd+Enter` | Execute the current query |
+| `Ctrl+Space` | Open autocomplete suggestions |
 | `Double-click tab name` | Rename a query tab |
 
 ---
@@ -387,9 +465,10 @@ This playground is designed to work well with [Strapi](https://strapi.io/) Graph
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Make your changes
 4. Run the dev server and test (`yarn dev`)
-5. Commit (`git commit -m 'feat: add my feature'`)
-6. Push to your branch (`git push origin feature/my-feature`)
-7. Open a Pull Request
+5. Run the test suite (`yarn test`)
+6. Commit (`git commit -m 'feat: add my feature'`)
+7. Push to your branch (`git push origin feature/my-feature`)
+8. Open a Pull Request
 
 ---
 

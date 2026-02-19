@@ -131,4 +131,12 @@ async function connectToEndpoint() {
 if (endpointsStore.endpoints.length === 0) {
   isEditing.value = true
 }
+
+function connectToUrl(url: string) {
+  newUrl.value = url
+  isEditing.value = true
+  nextTick(() => connectToEndpoint())
+}
+
+defineExpose({ connectToUrl })
 </script>

@@ -1,3 +1,5 @@
+import { playgroundConfig } from './app/playground.config'
+
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@pinia/nuxt'],
 
@@ -7,9 +9,9 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'GraphQL Playground',
+      title: playgroundConfig.app.name,
       meta: [
-        { name: 'description', content: 'A modern, configurable GraphQL playground' }
+        { name: 'description', content: playgroundConfig.app.description }
       ]
     }
   },

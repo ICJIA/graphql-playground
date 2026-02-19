@@ -1,4 +1,6 @@
 // app/composables/useHistory.ts
+import { playgroundConfig } from '~/playground.config'
+
 export interface HistoryEntry {
   query: string
   variables: string
@@ -6,8 +8,8 @@ export interface HistoryEntry {
   endpoint: string
 }
 
-const STORAGE_KEY = 'gql-playground-history'
-const MAX_ENTRIES = 50
+const STORAGE_KEY = playgroundConfig.storageKeys.history
+const MAX_ENTRIES = playgroundConfig.history.maxEntries
 
 function loadHistory(): HistoryEntry[] {
   if (import.meta.server) return []

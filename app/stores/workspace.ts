@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import type { QueryTab, Workspace, WorkspaceMap } from '~/types'
+import { playgroundConfig } from '~/playground.config'
 
-const STORAGE_KEY = 'gql-playground-workspaces'
+const STORAGE_KEY = playgroundConfig.storageKeys.workspaces
 
 function generateId(): string {
   return `tab-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`

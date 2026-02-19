@@ -6,8 +6,9 @@ import {
   type GraphQLSchema,
   type IntrospectionQuery
 } from 'graphql'
+import { playgroundConfig } from '~/playground.config'
 
-const LARGE_SCHEMA_THRESHOLD = 500
+const LARGE_SCHEMA_THRESHOLD = playgroundConfig.schema.largeSchemaThreshold
 
 export function useSchema() {
   const endpointsStore = useEndpointsStore()

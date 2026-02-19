@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import type { SavedEndpoint } from '~/types'
+import { playgroundConfig } from '~/playground.config'
 
-const STORAGE_KEY_ENDPOINTS = 'gql-playground-endpoints'
-const STORAGE_KEY_ACTIVE = 'gql-playground-active-endpoint'
+const STORAGE_KEY_ENDPOINTS = playgroundConfig.storageKeys.endpoints
+const STORAGE_KEY_ACTIVE = playgroundConfig.storageKeys.activeEndpoint
 
 function loadEndpoints(): SavedEndpoint[] {
   if (import.meta.server) return []

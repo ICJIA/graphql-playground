@@ -1,5 +1,5 @@
 {
-  "name": "graphql-playground-updated",
+  "name": "icjia-graphql-playground",
   "type": "module",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",
@@ -25,6 +27,11 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@types/splitpanes": "^2.2.6"
+    "@nuxt/test-utils": "^4.0.0",
+    "@types/splitpanes": "^2.2.6",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^20.6.3",
+    "vitest": "^4.0.18"
   }
 }
