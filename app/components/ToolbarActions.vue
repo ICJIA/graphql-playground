@@ -31,16 +31,21 @@ function prettify() {
   }
 }
 
+/** Escapes a string for safe inclusion inside single-quoted shell arguments. */
+function shellEscape(s: string): string {
+  return s.replace(/'/g, "'\\''")
+}
+
 /** Generates a curl command for the current query and copies it to the clipboard. */
 function copyCurl() {
   const endpoint = endpointsStore.activeEndpointData
   const tab = workspaceStore.activeTab
   if (!endpoint || !tab) return
 
-  let curl = `curl -X POST '${endpoint.url}' \\\n  -H 'Content-Type: application/json'`
+  let curl = `curl -X POST '${shellEscape(endpoint.url)}' \\\n  -H 'Content-Type: application/json'`
 
   if (endpoint.bearerToken) {
-    curl += ` \\\n  -H 'Authorization: Bearer ${endpoint.bearerToken}'`
+    curl += ` \\\n  -H 'Authorization: Bearer ${shellEscape(endpoint.bearerToken)}'`
   }
 
   const body: Record<string, any> = { query: tab.query }
@@ -52,7 +57,7 @@ function copyCurl() {
     }
   }
 
-  curl += ` \\\n  -d '${JSON.stringify(body)}'`
+  curl += ` \\\n  -d '${shellEscape(JSON.stringify(body))}'`
 
   navigator.clipboard.writeText(curl)
   toast.add({ title: 'CURL command copied to clipboard', color: 'success' })

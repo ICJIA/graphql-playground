@@ -21,8 +21,9 @@ describe('playground.config', () => {
       expect(playgroundConfig.proxy.allowedOrigins).toContain('https://icjia-graphql-playground.netlify.app')
     })
 
-    it('includes localhost origins for development', () => {
-      expect(playgroundConfig.proxy.allowedOrigins).toContain('http://localhost:3000')
+    it('does not include localhost origins in production config', () => {
+      expect(playgroundConfig.proxy.allowedOrigins).not.toContain('http://localhost:3000')
+      expect(playgroundConfig.proxy.allowedOrigins).not.toContain('http://localhost:3001')
     })
 
     it('does not include the old Netlify URL', () => {

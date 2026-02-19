@@ -104,9 +104,7 @@ export const playgroundConfig = {
      */
     allowedOrigins: [
       'https://playground.icjia.app',
-      'https://icjia-graphql-playground.netlify.app',
-      'http://localhost:3000',
-      'http://localhost:3001'
+      'https://icjia-graphql-playground.netlify.app'
     ],
 
     // ═════════════════════════════════════════════════════════════════

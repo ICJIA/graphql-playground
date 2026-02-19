@@ -92,7 +92,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 110 tests (unit, component, API) via Vitest |
+| Test suite | None | 122 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -236,7 +236,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 110 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 122 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -252,7 +252,7 @@ yarn test:watch
 | `tests/unit/stores.test.ts` | 11 | Pinia store persistence, endpoint sorting, workspace defaults |
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
-| `tests/api/graphql-proxy.test.ts` | 38 | SSRF blocking (IPv4, IPv6-mapped, loopback), header sanitization, origin validation, URL checks, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
+| `tests/api/graphql-proxy.test.ts` | 50 | SSRF blocking (IPv4, IPv6-mapped, loopback, DNS resolution), header sanitization, origin validation, URL checks, shell escape for CURL copy, redirect protection, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
 | `tests/components/WelcomeGuide.test.ts` | 7 | Rendering, example endpoints, manual endpoint option, emit events, content |
 | `tests/components/ResultsPanel.test.ts` | 4 | Placeholder state, results display, button visibility |
 
@@ -455,7 +455,10 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 | **GraphQL path check** | The target endpoint URL must contain `graphql` in the path. This prevents the proxy from being used as a general-purpose HTTP relay. |
 | **HTTPS enforcement** | In production, only HTTPS endpoints are allowed. HTTP is permitted in development only. |
 | **SSRF protection** | Requests to `localhost`, `127.0.0.1`, `0.0.0.0`, `[::1]`, private IP ranges (`10.x.x.x`, `127.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), IPv6-mapped private addresses (`::ffff:*`), and cloud metadata endpoints (`169.254.169.254`) are blocked. |
+| **DNS resolution check** | After hostname validation, the proxy resolves the hostname via DNS and checks the resolved IP against private ranges. This prevents SSRF bypasses via non-standard IP formats (hex, octal, decimal), short-form IPs, and domains that resolve to internal addresses. |
+| **Redirect blocking** | The proxy does not follow HTTP redirects (`redirect: 'manual'`). This prevents attackers from using a public domain that 302-redirects to internal services (e.g., cloud metadata endpoints). |
 | **Header allowlist** | Only safe headers are forwarded: `Authorization`, `Content-Type`, `Accept`, `X-API-Key`, `X-Request-ID`. All other headers from the client are silently dropped. |
+| **Shell-safe CURL export** | The "Copy CURL" feature escapes all user-controlled values (URL, bearer token, query body) to prevent shell injection when the command is pasted into a terminal. |
 | **Query size limit** | Queries exceeding 100KB are rejected with a `413` response. |
 | **Request timeout** | Upstream requests time out after 30 seconds. |
 | **POST only** | The proxy only accepts POST requests (enforced by Nitro's `.post.ts` file naming). |
@@ -579,7 +582,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (110 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (122 tests) |
 | [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
 | [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |

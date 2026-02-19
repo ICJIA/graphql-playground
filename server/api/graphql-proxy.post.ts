@@ -9,6 +9,7 @@
  * called from external sites or scripts (origin/referer validation).
  */
 
+import { lookup } from 'node:dns/promises'
 import { playgroundConfig } from '../../playground.config'
 
 const ALLOWED_ORIGINS: readonly string[] = playgroundConfig.proxy.allowedOrigins
@@ -128,6 +129,25 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // DNS resolution check: resolve hostname and verify the IP is not private.
+  // Prevents bypasses via non-standard IP formats (hex, octal, decimal)
+  // and domains that resolve to internal addresses.
+  try {
+    const { address } = await lookup(parsedUrl.hostname)
+    if (isPrivateIP(address)) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Requests to private or internal addresses are not allowed'
+      })
+    }
+  } catch (error: any) {
+    if (error?.statusCode === 403) throw error
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Could not resolve endpoint hostname'
+    })
+  }
+
   // --- Validate query ---
   if (!query || typeof query !== 'string') {
     throw createError({
@@ -163,7 +183,8 @@ export default defineEventHandler(async (event) => {
         query,
         variables: variables || undefined
       },
-      timeout: REQUEST_TIMEOUT
+      timeout: REQUEST_TIMEOUT,
+      redirect: 'manual'
     })
 
     return response
