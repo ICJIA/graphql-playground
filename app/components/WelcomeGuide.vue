@@ -45,6 +45,16 @@
       </div>
 
       <div class="text-left space-y-2">
+        <button
+          class="w-full text-left p-2 rounded border border-dashed border-gray-700 hover:border-gray-500 hover:bg-gray-800/30 transition-colors"
+          @click="$emit('manual')"
+        >
+          <p class="text-sm text-gray-300">I'll supply my own endpoint</p>
+          <p class="text-xs text-gray-500 mt-0.5">Enter a custom GraphQL endpoint URL</p>
+        </button>
+      </div>
+
+      <div class="text-left space-y-2">
         <h3 class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Keyboard Shortcuts</h3>
         <div class="grid grid-cols-2 gap-1 text-xs text-gray-400">
           <div>
@@ -66,5 +76,6 @@ import { playgroundConfig as config } from '~~/playground.config'
 
 defineEmits<{
   connect: [url: string, exampleQuery?: string]
+  manual: []
 }>()
 </script>

@@ -54,7 +54,7 @@
     <!-- Not connected: show welcome guide -->
     <template v-else>
       <div class="flex-1 overflow-hidden">
-        <WelcomeGuide @connect="onQuickConnect" />
+        <WelcomeGuide @connect="onQuickConnect" @manual="onManualConnect" />
       </div>
     </template>
 
@@ -82,18 +82,22 @@ const schemaState = useSchema()
 provide('schemaState', schemaState)
 
 /** Handles quick-connect from the welcome guide: connects to the endpoint and optionally pre-populates the first tab with an example query. */
-function onQuickConnect(url: string, exampleQuery?: string) {
-  // Trigger connection via the EndpointSelector
-  endpointSelector.value?.connectToUrl(url)
+/** Focuses the endpoint URL input for manual entry. */
+function onManualConnect() {
+  endpointSelector.value?.focusInput()
+}
+
+/** Handles quick-connect from the welcome guide: connects to the endpoint and optionally pre-populates the first tab with an example query. */
+async function onQuickConnect(url: string, exampleQuery?: string) {
+  // Trigger connection via the EndpointSelector and wait for it to complete
+  await endpointSelector.value?.connectToUrl(url)
 
   // Pre-populate the first tab with the example query
   if (exampleQuery) {
-    nextTick(() => {
-      const tab = workspaceStore.activeTab
-      if (tab) {
-        workspaceStore.updateTab(url, tab.id, { query: exampleQuery })
-      }
-    })
+    const tab = workspaceStore.activeTab
+    if (tab) {
+      workspaceStore.updateTab(url, tab.id, { query: exampleQuery })
+    }
   }
 }
 </script>

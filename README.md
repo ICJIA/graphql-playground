@@ -92,7 +92,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 108 tests (unit, component, API) via Vitest |
+| Test suite | None | 110 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -236,7 +236,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 108 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 110 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -253,7 +253,7 @@ yarn test:watch
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
 | `tests/api/graphql-proxy.test.ts` | 38 | SSRF blocking (IPv4, IPv6-mapped, loopback), header sanitization, origin validation, URL checks, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
-| `tests/components/WelcomeGuide.test.ts` | 5 | Rendering, example endpoints, emit events, content |
+| `tests/components/WelcomeGuide.test.ts` | 7 | Rendering, example endpoints, manual endpoint option, emit events, content |
 | `tests/components/ResultsPanel.test.ts` | 4 | Placeholder state, results display, button visibility |
 
 ---
@@ -579,7 +579,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (108 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (110 tests) |
 | [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
 | [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |

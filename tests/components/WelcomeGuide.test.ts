@@ -47,4 +47,19 @@ describe('WelcomeGuide', () => {
     const wrapper = mount(WelcomeGuide, mountOptions)
     expect(wrapper.text()).toContain('Enter a GraphQL endpoint URL')
   })
+
+  it('shows manual endpoint option', () => {
+    const wrapper = mount(WelcomeGuide, mountOptions)
+    expect(wrapper.text()).toContain("I'll supply my own endpoint")
+  })
+
+  it('emits manual event when manual option is clicked', async () => {
+    const wrapper = mount(WelcomeGuide, mountOptions)
+    const buttons = wrapper.findAll('button')
+    const manualButton = buttons.find((b) => b.text().includes('my own endpoint'))
+    expect(manualButton).toBeTruthy()
+
+    await manualButton!.trigger('click')
+    expect(wrapper.emitted('manual')).toBeTruthy()
+  })
 })

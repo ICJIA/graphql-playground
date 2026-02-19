@@ -17,6 +17,7 @@
 
     <div v-else class="flex-1 flex items-center gap-2">
       <UInput
+        ref="urlInput"
         v-model="newUrl"
         placeholder="Enter GraphQL endpoint URL (e.g., https://api.example.com/graphql)"
         class="flex-1"
@@ -51,6 +52,7 @@ const isEditing = ref(false)
 const isConnecting = ref(false)
 const newUrl = ref('')
 const urlError = ref('')
+const urlInput = ref()
 
 const selectedUrl = computed({
   get: () => endpointsStore.activeEndpoint,
@@ -131,11 +133,23 @@ if (endpointsStore.endpoints.length === 0) {
 }
 
 /** Programmatic connection method exposed via defineExpose for use by WelcomeGuide. */
-function connectToUrl(url: string) {
+async function connectToUrl(url: string) {
   newUrl.value = url
   isEditing.value = true
-  nextTick(() => connectToEndpoint())
+  await nextTick()
+  await connectToEndpoint()
 }
 
-defineExpose({ connectToUrl })
+/** Ensures the URL input is visible and focused for manual endpoint entry. */
+async function focusInput() {
+  isEditing.value = true
+  newUrl.value = ''
+  urlError.value = ''
+  await nextTick()
+  const el = urlInput.value
+  const input = el?.$el?.querySelector?.('input') ?? el?.inputRef
+  input?.focus()
+}
+
+defineExpose({ connectToUrl, focusInput })
 </script>
