@@ -8,6 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "pretest": "node -e \"const v = +process.version.slice(1).split('.')[0]; if (v < 20) { console.error('\\x1b[31mNode 20+ required (found ' + process.version + '). Run: nvm use\\x1b[0m'); process.exit(1) }\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
