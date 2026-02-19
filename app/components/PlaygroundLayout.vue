@@ -18,12 +18,12 @@
     </div>
 
     <!-- Main content: split panes -->
-    <div class="flex-1 overflow-hidden">
+    <div class="flex-1 overflow-hidden relative">
       <Splitpanes class="default-theme h-full">
         <Pane :size="50" :min-size="25">
           <div class="h-full flex flex-col">
             <div class="flex-1 overflow-hidden">
-              <QueryEditor />
+              <QueryEditor @execute="executeQuery" />
             </div>
             <BottomPanels />
           </div>
@@ -33,6 +33,19 @@
           <ResultsPanel />
         </Pane>
       </Splitpanes>
+
+      <!-- Execute button overlay on the splitter -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        <UButton
+          icon="i-lucide-play"
+          color="primary"
+          variant="solid"
+          size="xl"
+          class="rounded-full shadow-lg"
+          :loading="isExecuting"
+          @click="executeQuery"
+        />
+      </div>
     </div>
 
     <!-- Schema sidebar toggle -->
@@ -43,4 +56,6 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+
+const { isExecuting, executeQuery } = useGraphQL()
 </script>
