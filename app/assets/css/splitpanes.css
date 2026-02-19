@@ -1,0 +1,7 @@
+.splitpanes.default-theme .splitpanes__splitter {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+.splitpanes.default-theme .splitpanes__splitter:hover {
+  background-color: #3b82f6;
+}

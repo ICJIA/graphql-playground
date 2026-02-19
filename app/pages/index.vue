@@ -1,3 +1,4 @@
+<!-- app/pages/index.vue -->
 <template>
-  <div />
+  <PlaygroundLayout />
 </template>

@@ -1,6 +1,8 @@
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@pinia/nuxt'],
 
+  css: ['~/assets/css/splitpanes.css'],
+
   ssr: false,
 
   app: {
