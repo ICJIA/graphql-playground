@@ -26,9 +26,7 @@ export const useSettingsStore = defineStore('settings', {
 
   getters: {
     /** Returns the current editor font size setting. */
-    editorFontSize: (state) => state.settings.editorFontSize,
-    /** Returns whether autocomplete is enabled. */
-    autocomplete: (state) => state.settings.autocomplete
+    editorFontSize: (state) => state.settings.editorFontSize
   },
 
   actions: {

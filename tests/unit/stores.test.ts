@@ -117,7 +117,6 @@ describe('Settings store logic', () => {
   it('uses default settings when no localStorage data exists', () => {
     const defaults = { ...playgroundConfig.defaults }
     expect(defaults.editorFontSize).toBe(14)
-    expect(defaults.autocomplete).toBe(true)
   })
 
   it('merges saved settings with defaults', () => {
@@ -127,7 +126,6 @@ describe('Settings store logic', () => {
     const merged = { ...playgroundConfig.defaults, ...raw }
 
     expect(merged.editorFontSize).toBe(18)
-    expect(merged.autocomplete).toBe(true) // from defaults
   })
 
   it('font size stays within bounds', () => {

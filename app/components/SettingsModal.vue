@@ -14,18 +14,6 @@
           </div>
         </div>
 
-        <!-- Autocomplete Toggle -->
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-300">Autocomplete</p>
-            <p class="text-xs text-gray-500">Schema-aware suggestions via Ctrl+Space</p>
-          </div>
-          <USwitch
-            :model-value="settingsStore.autocomplete"
-            @update:model-value="settingsStore.updateSettings({ autocomplete: $event })"
-          />
-        </div>
-
         <USeparator />
 
         <!-- Export / Import -->

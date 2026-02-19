@@ -88,7 +88,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | CORS handling | Requires backend config | Built-in serverless proxy, works with any endpoint |
 | State persistence | Session only | Full localStorage persistence across browser sessions |
 | Download results | No | Yes — JSON, CSV, Markdown, YAML, TypeScript |
-| Settings & customization | None | Font size, autocomplete toggle, data export/import |
+| Settings & customization | None | Font size, data export/import |
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
@@ -264,7 +264,7 @@ All build-time constants are centralized in **`playground.config.ts`** (project 
 - Query history limits
 - localStorage key names (changing these orphans existing user data)
 
-Every setting has a JSDoc comment explaining what it does and whether it's safe to modify. Runtime user preferences (font size, autocomplete toggle) are managed in the Settings panel and persisted to localStorage.
+Every setting has a JSDoc comment explaining what it does and whether it's safe to modify. Runtime user preferences (font size) are managed in the Settings panel and persisted to localStorage.
 
 ---
 
@@ -425,7 +425,7 @@ All user data is stored in the browser's `localStorage`. Nothing is sent to any 
 | `gql-playground-active-endpoint` | Currently selected endpoint URL |
 | `gql-playground-workspaces` | Per-endpoint tabs with query content, variables, and results |
 | `gql-playground-history` | Query execution history (last 50 entries total across all endpoints) |
-| `gql-playground-settings` | User preferences (font size, autocomplete toggle) |
+| `gql-playground-settings` | User preferences (font size) |
 
 To clear all saved data, use the Settings panel (gear icon > Danger Zone) or open browser DevTools > Application > Local Storage and delete the keys.
 

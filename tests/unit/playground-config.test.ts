@@ -80,7 +80,6 @@ describe('playground.config', () => {
     it('has sensible editor defaults', () => {
       expect(playgroundConfig.defaults.editorFontSize).toBeGreaterThanOrEqual(10)
       expect(playgroundConfig.defaults.editorFontSize).toBeLessThanOrEqual(24)
-      expect(playgroundConfig.defaults.autocomplete).toBe(true)
     })
   })
 

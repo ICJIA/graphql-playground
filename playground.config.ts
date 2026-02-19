@@ -88,10 +88,7 @@ export const playgroundConfig = {
    */
   defaults: {
     /** Default editor font size in pixels (range: 10–24). */
-    editorFontSize: 14,
-
-    /** Whether schema-aware autocomplete is enabled by default. */
-    autocomplete: true
+    editorFontSize: 14
   },
 
   /**

@@ -41,6 +41,4 @@ export type WorkspaceMap = Record<string, Workspace>
 export interface PlaygroundSettings {
   /** Font size in pixels used in the query and variables editors. */
   editorFontSize: number
-  /** Whether to enable autocomplete suggestions in the editor. */
-  autocomplete: boolean
 }
