@@ -8,10 +8,22 @@ function generateId(): string {
   return `tab-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+function extractQueryName(query: string): string | null {
+  if (!query || !query.trim()) return null
+  // Match named operations: query MyQuery { ... } or mutation CreateUser { ... }
+  const operationMatch = query.match(/(?:query|mutation|subscription)\s+([A-Za-z_]\w*)/i)
+  if (operationMatch) return operationMatch[1]
+  // Match first root field: { meetings { ... } } or { users { ... } }
+  const fieldMatch = query.match(/\{\s*([A-Za-z_]\w*)/)
+  if (fieldMatch) return fieldMatch[1]
+  return null
+}
+
 function createDefaultTab(): QueryTab {
   return {
     id: generateId(),
     name: 'New Tab',
+    autoName: true,
     query: '{\n  \n}',
     variables: '',
     results: null
@@ -92,6 +104,14 @@ export const useWorkspaceStore = defineStore('workspace', {
       const tab = ws.tabs.find(t => t.id === tabId)
       if (tab) {
         Object.assign(tab, updates)
+        // Auto-rename tab from query content (unless user manually renamed)
+        if (updates.query && tab.autoName !== false) {
+          const name = extractQueryName(updates.query)
+          if (name) {
+            tab.name = name
+            tab.autoName = true
+          }
+        }
         this.persist()
       }
     },

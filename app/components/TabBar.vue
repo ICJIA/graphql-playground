@@ -76,7 +76,7 @@ function finishRenaming(tabId: string) {
     workspaceStore.updateTab(
       endpointsStore.activeEndpoint,
       tabId,
-      { name: editingName.value.trim() }
+      { name: editingName.value.trim(), autoName: false }
     )
   }
   editingTabId.value = null
