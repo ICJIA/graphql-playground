@@ -8,8 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "node --import ./tests/crypto-setup.mjs ./node_modules/.bin/vitest run",
+    "test:watch": "node --import ./tests/crypto-setup.mjs ./node_modules/.bin/vitest"
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",
