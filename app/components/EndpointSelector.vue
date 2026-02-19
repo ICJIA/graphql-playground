@@ -7,6 +7,7 @@
       <USelectMenu
         v-model="selectedUrl"
         :items="endpointOptions"
+        value-key="value"
         class="flex-1"
         placeholder="Select an endpoint..."
         @update:model-value="onSelectEndpoint"
