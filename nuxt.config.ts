@@ -20,6 +20,10 @@ export default defineNuxtConfig({
     classSuffix: ''
   },
 
+  nitro: {
+    preset: 'netlify'
+  },
+
   devtools: { enabled: true },
 
   compatibilityDate: '2026-02-19'
