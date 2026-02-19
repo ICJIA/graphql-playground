@@ -58,4 +58,8 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 const { isExecuting, executeQuery } = useGraphQL()
+
+// Provide schema state so QueryEditor and SchemaSidebar share one instance
+const schemaState = useSchema()
+provide('schemaState', schemaState)
 </script>

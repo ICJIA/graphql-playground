@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-const schemaState = useSchema()
+const schemaState = inject<ReturnType<typeof useSchema>>('schemaState')!
 
 const isOpen = ref(false)
 const activeView = ref<'docs' | 'schema'>('docs')

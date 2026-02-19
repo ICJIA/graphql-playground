@@ -7,11 +7,12 @@
 import { EditorView, basicSetup } from 'codemirror'
 import { EditorState } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { graphql } from 'cm6-graphql'
+import { graphql, updateSchema } from 'cm6-graphql'
 import { keymap } from '@codemirror/view'
 
 const endpointsStore = useEndpointsStore()
 const workspaceStore = useWorkspaceStore()
+const schemaState = inject<ReturnType<typeof useSchema>>('schemaState')!
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editorView: EditorView | null = null
@@ -60,7 +61,7 @@ function createEditor(doc: string) {
       extensions: [
         basicSetup,
         oneDark,
-        ...graphql(),
+        ...graphql(schemaState.schema.value || undefined),
         executeKeymap,
         updateListener,
         EditorView.theme({
@@ -80,6 +81,16 @@ watch(
     const tab = workspaceStore.activeTab
     if (tab) {
       createEditor(tab.query)
+    }
+  }
+)
+
+// Update schema in editor when introspection completes or endpoint changes
+watch(
+  () => schemaState.schema.value,
+  (newSchema) => {
+    if (editorView) {
+      updateSchema(editorView, newSchema || undefined)
     }
   }
 )
