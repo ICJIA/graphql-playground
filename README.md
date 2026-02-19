@@ -133,7 +133,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 
 **Settings & Persistence**
 - **Query history** — browse and re-run previously executed queries (per-endpoint)
-- **Settings panel** — adjust editor font size, toggle autocomplete, export/import data, clear all saved data (with confirmation)
+- **Settings panel** — adjust editor font size, export/import data, clear all saved data (with confirmation)
 - **Quick-start guide** — example endpoints and usage instructions shown on first launch
 - **Full persistence** — everything is saved to `localStorage` and restored when you return
 - **Export / Import** — export all saved data as JSON, import on another machine
@@ -208,6 +208,18 @@ The dev server runs at `http://localhost:3000` by default. The GraphQL proxy fun
 
 **Note:** In development mode, the proxy allows HTTP endpoints for testing. In production, only HTTPS endpoints are permitted.
 
+### Linting
+
+The project uses [@nuxt/eslint](https://eslint.nuxt.com/) with [Prettier](https://prettier.io/) for consistent formatting.
+
+```bash
+# Check for lint errors
+yarn lint
+
+# Auto-fix lint and formatting errors
+yarn lint:fix
+```
+
 ### Production build
 
 ```bash
@@ -254,7 +266,7 @@ All build-time constants are centralized in **`playground.config.ts`** (project 
 
 - App metadata (name, version, URLs)
 - Example endpoints shown in the quick-start guide
-- Default editor settings (font size, autocomplete)
+- Default editor settings (font size)
 - Allowed origins for the CORS proxy
 
 **Internal / do not change (bottom of file)** — security and infrastructure settings:
@@ -442,7 +454,7 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 | **Origin validation** | The proxy only accepts requests from the playground app itself. External sites, scripts, and `curl` commands cannot use the proxy in production. Enforced via `Origin` / `Referer` header checking against an allowlist. |
 | **GraphQL path check** | The target endpoint URL must contain `graphql` in the path. This prevents the proxy from being used as a general-purpose HTTP relay. |
 | **HTTPS enforcement** | In production, only HTTPS endpoints are allowed. HTTP is permitted in development only. |
-| **SSRF protection** | Requests to `localhost`, `127.0.0.1`, `0.0.0.0`, `[::1]`, private IP ranges (`10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), and cloud metadata endpoints (`169.254.169.254`) are blocked. |
+| **SSRF protection** | Requests to `localhost`, `127.0.0.1`, `0.0.0.0`, `[::1]`, private IP ranges (`10.x.x.x`, `127.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), IPv6-mapped private addresses (`::ffff:*`), and cloud metadata endpoints (`169.254.169.254`) are blocked. |
 | **Header allowlist** | Only safe headers are forwarded: `Authorization`, `Content-Type`, `Accept`, `X-API-Key`, `X-Request-ID`. All other headers from the client are silently dropped. |
 | **Query size limit** | Queries exceeding 100KB are rejected with a `413` response. |
 | **Request timeout** | Upstream requests time out after 30 seconds. |
@@ -512,7 +524,7 @@ graphql-playground/
 │   │   ├── BottomPanels.vue      # Variables + HTTP Headers panels
 │   │   ├── ToolbarActions.vue    # Prettify, History, Copy CURL buttons
 │   │   ├── HistoryModal.vue      # Query history browser
-│   │   ├── SettingsModal.vue     # App settings (font size, autocomplete, data management)
+│   │   ├── SettingsModal.vue     # App settings (font size, data management)
 │   │   ├── SchemaSidebar.vue     # Schema documentation slide-out panel
 │   │   ├── SchemaSection.vue     # Collapsible Queries/Mutations section
 │   │   └── SchemaTypeDetail.vue  # Expandable type detail view
@@ -540,9 +552,13 @@ graphql-playground/
 │   └── plans/                    # Design and implementation planning documents
 ├── playground.config.ts           # Single source of truth: build-time constants & defaults
 ├── nuxt.config.ts                # Nuxt configuration (SPA mode, dark theme, Netlify preset)
+├── eslint.config.mjs             # ESLint flat config with @nuxt/eslint + Prettier
+├── .prettierrc                   # Prettier formatting rules (no semis, single quotes)
 ├── netlify.toml                  # Netlify build and deploy configuration
 ├── vitest.config.ts              # Vitest configuration
+├── tsconfig.json                 # TypeScript configuration
 ├── package.json                  # Dependencies and scripts
+├── LICENSE                       # MIT license
 ├── .nvmrc                        # Node.js version (22.14.0)
 └── yarn.lock                     # Dependency lock file
 ```
@@ -564,6 +580,8 @@ graphql-playground/
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
 | [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (108 tests) |
+| [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
+| [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |
 
 ---
@@ -586,7 +604,7 @@ This playground is designed to work well with [Strapi](https://strapi.io/) Graph
 
 2. **Permissions** — Strapi controls what operations are available through its role-based permissions system. If a query returns an authorization error, check your Strapi admin panel under Settings > Roles > Public (or the relevant role) to ensure the content types are readable.
 
-3. **Bearer tokens** — For authenticated queries, create an API token in Strapi (Settings > API Tokens) and paste it into the HTTP Headers panel in the playground.
+3. **Bearer tokens** — For authenticated queries, create an API token in Strapi (Settings > API Tokens) and paste it into the bearer token input for the endpoint in the playground.
 
 4. **Schema size** — Large Strapi projects can generate schemas with hundreds of types (filters, pagination, relations all create additional types). If the schema docs sidebar feels slow, use the search feature to quickly find what you need.
 
@@ -598,10 +616,11 @@ This playground is designed to work well with [Strapi](https://strapi.io/) Graph
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Make your changes
 4. Run the dev server and test (`yarn dev`)
-5. Run the test suite (`yarn test`)
-6. Commit (`git commit -m 'feat: add my feature'`)
-7. Push to your branch (`git push origin feature/my-feature`)
-8. Open a Pull Request
+5. Run the linter (`yarn lint:fix`)
+6. Run the test suite (`yarn test`)
+7. Commit (`git commit -m 'feat: add my feature'`)
+8. Push to your branch (`git push origin feature/my-feature`)
+9. Open a Pull Request
 
 ---
 
