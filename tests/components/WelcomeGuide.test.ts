@@ -31,15 +31,16 @@ describe('WelcomeGuide', () => {
     expect(wrapper.text()).toContain('Ctrl+Space')
   })
 
-  it('emits connect event when example endpoint is clicked', async () => {
+  it('emits connect event with URL and example query when clicked', async () => {
     const wrapper = mount(WelcomeGuide, mountOptions)
 
     const buttons = wrapper.findAll('button')
     expect(buttons.length).toBeGreaterThan(0)
 
     await buttons[0].trigger('click')
+    const ep = playgroundConfig.exampleEndpoints[0]
     expect(wrapper.emitted('connect')).toBeTruthy()
-    expect(wrapper.emitted('connect')![0]).toEqual([playgroundConfig.exampleEndpoints[0].url])
+    expect(wrapper.emitted('connect')![0]).toEqual([ep.url, ep.exampleQuery])
   })
 
   it('instructs user to enter an endpoint', () => {

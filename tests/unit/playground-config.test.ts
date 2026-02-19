@@ -96,6 +96,20 @@ describe('playground.config', () => {
         expect(ep.url).toContain('graphql')
         expect(ep.label).toBeTruthy()
         expect(ep.description).toBeTruthy()
+        expect(ep.exampleQuery).toBeTruthy()
+      }
+    })
+
+    it('example queries are valid GraphQL shape', () => {
+      for (const ep of playgroundConfig.exampleEndpoints) {
+        expect(ep.exampleQuery).toContain('{')
+        expect(ep.exampleQuery).toContain('}')
+      }
+    })
+
+    it('does not include authenticated endpoints', () => {
+      for (const ep of playgroundConfig.exampleEndpoints) {
+        expect(ep.description.toLowerCase()).toContain('no auth')
       }
     })
   })

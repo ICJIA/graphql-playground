@@ -92,7 +92,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 103 tests (unit, component, API) via Vitest |
+| Test suite | None | 105 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -149,7 +149,7 @@ Visit [https://icjia-graphql-playground.netlify.app](https://icjia-graphql-playg
 
 ```
 https://countries.trevorblades.com/graphql
-https://spac.icjia-api.cloud/graphql
+https://rickandmortyapi.com/graphql
 ```
 
 ### Run locally
@@ -224,7 +224,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 103 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 105 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -236,7 +236,7 @@ yarn test:watch
 
 | Suite | Tests | What it covers |
 |-------|-------|----------------|
-| `tests/unit/playground-config.test.ts` | 15 | Config structure, URLs, security settings, storage keys, defaults |
+| `tests/unit/playground-config.test.ts` | 17 | Config structure, URLs, security settings, storage keys, defaults, example queries |
 | `tests/unit/stores.test.ts` | 11 | Pinia store persistence, endpoint sorting, workspace defaults |
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
@@ -538,7 +538,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (103 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (105 tests) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |
 
 ---

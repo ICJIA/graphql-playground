@@ -32,10 +32,11 @@
 
       <div class="text-left space-y-2">
         <h3 class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Try an Example</h3>
+        <p class="text-xs text-gray-500">Click to connect and load a sample query you can run immediately.</p>
         <div v-for="ep in config.exampleEndpoints" :key="ep.url" class="group">
           <button
             class="w-full text-left p-2 rounded bg-gray-800/50 hover:bg-gray-800 transition-colors"
-            @click="$emit('connect', ep.url)"
+            @click="$emit('connect', ep.url, ep.exampleQuery)"
           >
             <p class="text-sm text-primary-400 font-mono truncate">{{ ep.url }}</p>
             <p class="text-xs text-gray-500 mt-0.5">{{ ep.description }}</p>
@@ -64,6 +65,6 @@
 import { playgroundConfig as config } from '~/playground.config'
 
 defineEmits<{
-  connect: [url: string]
+  connect: [url: string, exampleQuery?: string]
 }>()
 </script>

@@ -73,12 +73,14 @@ export const playgroundConfig = {
     {
       url: 'https://countries.trevorblades.com/graphql',
       label: 'Countries API',
-      description: 'Public API for country data — no auth required'
+      description: 'Public API for country data — no auth required',
+      exampleQuery: '{\n  countries {\n    name\n    capital\n    emoji\n    currency\n  }\n}'
     },
     {
-      url: 'https://spac.icjia-api.cloud/graphql',
-      label: 'ICJIA SPAC API',
-      description: 'Illinois Criminal Justice Information Authority — Strapi GraphQL'
+      url: 'https://rickandmortyapi.com/graphql',
+      label: 'Rick and Morty API',
+      description: 'Characters, episodes, and locations — no auth required',
+      exampleQuery: '{\n  characters(page: 1) {\n    results {\n      name\n      species\n      status\n    }\n  }\n}'
     }
   ]
 } as const

@@ -76,6 +76,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 const endpointsStore = useEndpointsStore()
+const workspaceStore = useWorkspaceStore()
 const { isExecuting, executeQuery } = useGraphQL()
 
 const settingsOpen = ref(false)
@@ -85,8 +86,18 @@ const endpointSelector = ref()
 const schemaState = useSchema()
 provide('schemaState', schemaState)
 
-function onQuickConnect(url: string) {
+function onQuickConnect(url: string, exampleQuery?: string) {
   // Trigger connection via the EndpointSelector
   endpointSelector.value?.connectToUrl(url)
+
+  // Pre-populate the first tab with the example query
+  if (exampleQuery) {
+    nextTick(() => {
+      const tab = workspaceStore.activeTab
+      if (tab) {
+        workspaceStore.updateTab(url, tab.id, { query: exampleQuery })
+      }
+    })
+  }
 }
 </script>
