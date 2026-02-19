@@ -62,13 +62,24 @@
           icon="i-lucide-alert-triangle"
         />
 
-        <!-- Search -->
-        <UInput
-          v-model="search"
-          placeholder="Search types, fields..."
-          icon="i-lucide-search"
-          size="sm"
-        />
+        <!-- Search + Download -->
+        <div class="flex items-center gap-2">
+          <UInput
+            v-model="search"
+            placeholder="Search types, fields..."
+            icon="i-lucide-search"
+            size="sm"
+            class="flex-1"
+          />
+          <UButton
+            icon="i-lucide-download"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            title="Download docs as JSON (for LLMs)"
+            @click="downloadDocsJson"
+          />
+        </div>
 
         <!-- Queries section -->
         <SchemaSection
@@ -109,7 +120,17 @@
       </div>
 
       <!-- SDL view -->
-      <div v-else class="overflow-auto p-2">
+      <div v-else class="space-y-2 p-2">
+        <div class="flex justify-end">
+          <UButton
+            icon="i-lucide-download"
+            label="Download SDL"
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            @click="downloadSdl"
+          />
+        </div>
         <pre class="text-xs text-gray-300 font-mono whitespace-pre-wrap">{{ schemaState.sdl.value }}</pre>
       </div>
     </template>
@@ -117,7 +138,22 @@
 </template>
 
 <script setup lang="ts">
+import {
+  isObjectType,
+  isInterfaceType,
+  isInputObjectType,
+  isEnumType,
+  isUnionType,
+  isScalarType,
+  type GraphQLObjectType,
+  type GraphQLField,
+  type GraphQLType,
+  getNamedType
+} from 'graphql'
+
 const schemaState = inject<ReturnType<typeof useSchema>>('schemaState')!
+const endpointsStore = useEndpointsStore()
+const toast = useToast()
 
 const isOpen = ref(false)
 const activeView = ref<'docs' | 'schema'>('docs')
@@ -134,5 +170,120 @@ const filteredTypes = computed(() => {
 function navigateTo(typeName: string) {
   search.value = typeName
   typesExpanded.value = true
+}
+
+function getEndpointSlug(): string {
+  try {
+    const url = new URL(endpointsStore.activeEndpoint)
+    return url.hostname.replace(/\./g, '-')
+  } catch {
+    return 'schema'
+  }
+}
+
+function downloadFile(content: string, filename: string, type: string) {
+  const blob = new Blob([content], { type })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function downloadSdl() {
+  if (!schemaState.sdl.value) return
+  const slug = getEndpointSlug()
+  downloadFile(schemaState.sdl.value, `${slug}-schema.graphql`, 'text/plain')
+  toast.add({ title: 'Schema SDL downloaded', color: 'success' })
+}
+
+function serializeFields(type: GraphQLObjectType) {
+  return Object.values(type.getFields()).map((field: GraphQLField<any, any>) => ({
+    name: field.name,
+    description: field.description || null,
+    type: field.type.toString(),
+    args: field.args.map(arg => ({
+      name: arg.name,
+      description: arg.description || null,
+      type: arg.type.toString(),
+      defaultValue: arg.defaultValue !== undefined ? arg.defaultValue : null
+    }))
+  }))
+}
+
+function downloadDocsJson() {
+  const schema = schemaState.schema.value
+  if (!schema) return
+
+  const docs: Record<string, any> = {
+    endpoint: endpointsStore.activeEndpoint,
+    exportedAt: new Date().toISOString(),
+    typeCount: schemaState.typeCount.value
+  }
+
+  // Queries
+  const queryType = schema.getQueryType()
+  if (queryType) {
+    docs.queries = serializeFields(queryType)
+  }
+
+  // Mutations
+  const mutationType = schema.getMutationType()
+  if (mutationType) {
+    docs.mutations = serializeFields(mutationType)
+  }
+
+  // Types
+  docs.types = schemaState.allTypes.value.map(type => {
+    const entry: Record<string, any> = {
+      name: type.name,
+      description: (type as any).description || null,
+      kind: getTypeKind(type)
+    }
+
+    if (isObjectType(type) || isInterfaceType(type) || isInputObjectType(type)) {
+      entry.fields = Object.values(type.getFields()).map((f: any) => ({
+        name: f.name,
+        description: f.description || null,
+        type: f.type.toString(),
+        ...(f.args ? {
+          args: f.args.map((a: any) => ({
+            name: a.name,
+            description: a.description || null,
+            type: a.type.toString()
+          }))
+        } : {})
+      }))
+    }
+
+    if (isEnumType(type)) {
+      entry.values = type.getValues().map(v => ({
+        name: v.name,
+        description: v.description || null
+      }))
+    }
+
+    if (isUnionType(type)) {
+      entry.possibleTypes = type.getTypes().map(t => t.name)
+    }
+
+    return entry
+  })
+
+  const slug = getEndpointSlug()
+  const json = JSON.stringify(docs, null, 2)
+  downloadFile(json, `${slug}-docs.json`, 'application/json')
+  toast.add({ title: 'Schema docs JSON downloaded', color: 'success' })
+}
+
+function getTypeKind(type: any): string {
+  if (isObjectType(type)) return 'OBJECT'
+  if (isInterfaceType(type)) return 'INTERFACE'
+  if (isInputObjectType(type)) return 'INPUT_OBJECT'
+  if (isEnumType(type)) return 'ENUM'
+  if (isUnionType(type)) return 'UNION'
+  if (isScalarType(type)) return 'SCALAR'
+  return 'UNKNOWN'
 }
 </script>
