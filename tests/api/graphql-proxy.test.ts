@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { playgroundConfig } from '../../app/playground.config'
+import { playgroundConfig } from '../../playground.config'
 
 /**
  * Tests for the GraphQL proxy security logic.
@@ -11,13 +11,19 @@ import { playgroundConfig } from '../../app/playground.config'
 
 // Replicate the isPrivateIP function from the proxy
 function isPrivateIP(hostname: string): boolean {
-  const parts = hostname.split('.').map(Number)
-  if (parts.length === 4 && parts.every(n => !isNaN(n))) {
-    if (parts[0] === 10) return true
-    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true
-    if (parts[0] === 192 && parts[1] === 168) return true
-    if (parts[0] === 0) return true
+  let normalized = hostname
+  if (normalized.startsWith('::ffff:')) {
+    normalized = normalized.slice(7)
   }
+
+  const parts = normalized.split('.').map(Number)
+  if (parts.length !== 4 || parts.some((n) => isNaN(n))) return false
+  const [a, b] = parts
+  if (a === 10) return true
+  if (a === 127) return true
+  if (a === 172 && b >= 16 && b <= 31) return true
+  if (a === 192 && b === 168) return true
+  if (a === 0) return true
   return false
 }
 
@@ -35,11 +41,7 @@ function sanitizeHeaders(
   }
 
   for (const [key, value] of Object.entries(customHeaders)) {
-    if (
-      typeof key === 'string' &&
-      typeof value === 'string' &&
-      allowedHeaders.includes(key.toLowerCase())
-    ) {
+    if (typeof key === 'string' && typeof value === 'string' && allowedHeaders.includes(key.toLowerCase())) {
       sanitized[key] = value
     }
   }
@@ -68,9 +70,28 @@ describe('Proxy security: SSRF protection', () => {
     expect(isPrivateIP('192.168.1.100')).toBe(true)
   })
 
+  it('blocks 127.x.x.x loopback range', () => {
+    expect(isPrivateIP('127.0.0.1')).toBe(true)
+    expect(isPrivateIP('127.0.0.2')).toBe(true)
+    expect(isPrivateIP('127.1.2.3')).toBe(true)
+    expect(isPrivateIP('127.255.255.255')).toBe(true)
+  })
+
   it('blocks 0.x.x.x range', () => {
     expect(isPrivateIP('0.0.0.0')).toBe(true)
     expect(isPrivateIP('0.1.2.3')).toBe(true)
+  })
+
+  it('blocks IPv6-mapped private addresses', () => {
+    expect(isPrivateIP('::ffff:10.0.0.1')).toBe(true)
+    expect(isPrivateIP('::ffff:127.0.0.1')).toBe(true)
+    expect(isPrivateIP('::ffff:192.168.1.1')).toBe(true)
+    expect(isPrivateIP('::ffff:172.16.0.1')).toBe(true)
+  })
+
+  it('allows IPv6-mapped public addresses', () => {
+    expect(isPrivateIP('::ffff:8.8.8.8')).toBe(false)
+    expect(isPrivateIP('::ffff:1.1.1.1')).toBe(false)
   })
 
   it('allows public IPs', () => {
@@ -134,10 +155,7 @@ describe('Proxy security: Header sanitization', () => {
   })
 
   it('is case-insensitive for header matching', () => {
-    const result = sanitizeHeaders(
-      { authorization: 'Bearer test' },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ authorization: 'Bearer test' }, allowedHeaders)
     expect(result['authorization']).toBe('Bearer test')
   })
 })
@@ -145,7 +163,8 @@ describe('Proxy security: Header sanitization', () => {
 describe('Proxy security: Origin validation', () => {
   const allowedOrigins = playgroundConfig.proxy.allowedOrigins
 
-  it('allows the production origin', () => {
+  it('allows the production origins', () => {
+    expect(allowedOrigins).toContain('https://playground.icjia.app')
     expect(allowedOrigins).toContain('https://icjia-graphql-playground.netlify.app')
   })
 
@@ -182,10 +201,7 @@ describe('Proxy security: Bearer token handling', () => {
   })
 
   it('forwards x-api-key through sanitization', () => {
-    const result = sanitizeHeaders(
-      { 'X-API-Key': 'sk-live-abc123' },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ 'X-API-Key': 'sk-live-abc123' }, allowedHeaders)
     expect(result['X-API-Key']).toBe('sk-live-abc123')
   })
 
@@ -199,44 +215,29 @@ describe('Proxy security: Bearer token handling', () => {
   })
 
   it('strips set-cookie to prevent injection', () => {
-    const result = sanitizeHeaders(
-      { 'Set-Cookie': 'malicious=true' },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ 'Set-Cookie': 'malicious=true' }, allowedHeaders)
     expect(result['Set-Cookie']).toBeUndefined()
   })
 
   it('strips x-forwarded-for to prevent IP spoofing', () => {
-    const result = sanitizeHeaders(
-      { 'X-Forwarded-For': '1.2.3.4' },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ 'X-Forwarded-For': '1.2.3.4' }, allowedHeaders)
     expect(result['X-Forwarded-For']).toBeUndefined()
   })
 
   it('strips host header to prevent host injection', () => {
-    const result = sanitizeHeaders(
-      { Host: 'evil.com' },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ Host: 'evil.com' }, allowedHeaders)
     expect(result['Host']).toBeUndefined()
   })
 
   it('rejects non-string header values', () => {
-    const result = sanitizeHeaders(
-      { Authorization: 123 as any, 'Content-Type': null as any },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ Authorization: 123 as any, 'Content-Type': null as any }, allowedHeaders)
     // Only the default Content-Type should remain
     expect(result['Authorization']).toBeUndefined()
     expect(result['Content-Type']).toBe('application/json')
   })
 
   it('rejects non-string header keys passed as objects', () => {
-    const result = sanitizeHeaders(
-      { '': 'Bearer token' } as any,
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ '': 'Bearer token' } as any, allowedHeaders)
     expect(result['']).toBeUndefined()
   })
 
@@ -246,7 +247,7 @@ describe('Proxy security: Bearer token handling', () => {
   })
 
   it('production requires HTTPS so token is encrypted in transit to proxy', () => {
-    const productionOrigin = playgroundConfig.proxy.allowedOrigins.find(o => o.startsWith('https://'))
+    const productionOrigin = playgroundConfig.proxy.allowedOrigins.find((o) => o.startsWith('https://'))
     expect(productionOrigin).toBeDefined()
     expect(productionOrigin).toMatch(/^https:\/\//)
   })

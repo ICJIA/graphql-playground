@@ -12,13 +12,7 @@
         placeholder="Select an endpoint..."
         @update:model-value="onSelectEndpoint"
       />
-      <UButton
-        icon="i-lucide-pencil"
-        variant="ghost"
-        color="neutral"
-        size="xs"
-        @click="startEditing"
-      />
+      <UButton icon="i-lucide-pencil" variant="ghost" color="neutral" size="xs" @click="startEditing" />
     </div>
 
     <div v-else class="flex-1 flex items-center gap-2">
@@ -64,29 +58,33 @@ const selectedUrl = computed({
 })
 
 const endpointOptions = computed(() =>
-  endpointsStore.sortedEndpoints.map(ep => ({
+  endpointsStore.sortedEndpoints.map((ep) => ({
     label: ep.label,
     value: ep.url
   }))
 )
 
+/** Switches to the URL input mode for entering a new endpoint. */
 function startEditing() {
   isEditing.value = true
   newUrl.value = ''
   urlError.value = ''
 }
 
+/** Returns to the endpoint dropdown without making changes. */
 function cancelEditing() {
   isEditing.value = false
   newUrl.value = ''
   urlError.value = ''
 }
 
+/** Handles selecting a saved endpoint from the dropdown, activating it and ensuring its workspace exists. */
 function onSelectEndpoint(url: string) {
   endpointsStore.setActiveEndpoint(url)
   workspaceStore.ensureWorkspace(url)
 }
 
+/** Validates the URL, tests connectivity via the proxy, and saves the endpoint on success. */
 async function connectToEndpoint() {
   const url = newUrl.value.trim()
   urlError.value = ''
@@ -132,6 +130,7 @@ if (endpointsStore.endpoints.length === 0) {
   isEditing.value = true
 }
 
+/** Programmatic connection method exposed via defineExpose for use by WelcomeGuide. */
 function connectToUrl(url: string) {
   newUrl.value = url
   isEditing.value = true

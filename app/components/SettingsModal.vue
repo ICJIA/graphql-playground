@@ -62,9 +62,10 @@
           </div>
 
           <p class="text-xs text-gray-400 leading-relaxed">
-            This will permanently delete <strong class="text-gray-300">all saved data</strong> for
-            this playground, including all saved endpoints, query workspaces, query history,
-            bearer tokens, and settings. This applies to every GraphQL endpoint you've connected to.
+            This will permanently delete
+            <strong class="text-gray-300">all saved data</strong>
+            for this playground, including all saved endpoints, query workspaces, query history, bearer tokens, and
+            settings. This applies to every GraphQL endpoint you've connected to.
             <strong class="text-red-400">This action cannot be undone.</strong>
           </p>
 
@@ -81,7 +82,9 @@
 
           <div v-else class="space-y-3 border-t border-red-900/30 pt-3">
             <p class="text-xs text-red-400 font-medium">
-              Type <code class="bg-red-950 px-1 py-0.5 rounded font-mono">DELETE</code> to confirm:
+              Type
+              <code class="bg-red-950 px-1 py-0.5 rounded font-mono">DELETE</code>
+              to confirm:
             </p>
             <UInput
               v-model="clearConfirmText"
@@ -99,13 +102,7 @@
                 :disabled="clearConfirmText !== 'DELETE'"
                 @click="executeClear"
               />
-              <UButton
-                label="Cancel"
-                variant="ghost"
-                color="neutral"
-                size="sm"
-                @click="cancelClear"
-              />
+              <UButton label="Cancel" variant="ghost" color="neutral" size="sm" @click="cancelClear" />
             </div>
           </div>
         </div>
@@ -114,11 +111,19 @@
         <div class="text-xs text-gray-600 space-y-2">
           <p>{{ config.app.name }} v{{ config.app.version }}</p>
           <div class="flex items-center gap-3">
-            <a :href="config.app.repository" target="_blank" class="inline-flex items-center gap-1 text-primary-500 hover:underline">
+            <a
+              :href="config.app.repository"
+              target="_blank"
+              class="inline-flex items-center gap-1 text-primary-500 hover:underline"
+            >
               <UIcon name="i-lucide-github" class="text-sm" />
               GitHub Repository
             </a>
-            <a :href="config.app.liveUrl" target="_blank" class="inline-flex items-center gap-1 text-primary-500 hover:underline">
+            <a
+              :href="config.app.liveUrl"
+              target="_blank"
+              class="inline-flex items-center gap-1 text-primary-500 hover:underline"
+            >
               <UIcon name="i-lucide-external-link" class="text-sm" />
               Live Site
             </a>
@@ -130,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { playgroundConfig as config } from '~/playground.config'
+import { playgroundConfig as config } from '~~/playground.config'
 
 const isOpen = defineModel<boolean>('open', { default: false })
 
@@ -141,12 +146,19 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const showClearConfirmation = ref(false)
 const clearConfirmText = ref('')
 
+/**
+ * Adjusts the editor font size by the given delta, clamped to the 10-24 px range.
+ * @param {number} delta - The amount to change the font size by (positive or negative).
+ */
 function adjustFontSize(delta: number) {
   const current = settingsStore.editorFontSize
   const next = Math.max(10, Math.min(24, current + delta))
   settingsStore.updateSettings({ editorFontSize: next })
 }
 
+/**
+ * Exports all localStorage data as a JSON file for backup or transfer.
+ */
 function exportData() {
   const data: Record<string, any> = {
     version: config.app.version,
@@ -168,10 +180,17 @@ function exportData() {
   toast.add({ title: 'Data exported', color: 'success' })
 }
 
+/**
+ * Opens the hidden file input to select a JSON backup file for import.
+ */
 function triggerImport() {
   fileInput.value?.click()
 }
 
+/**
+ * Reads and restores data from an exported JSON backup file, then reloads the page.
+ * @param {Event} event - The file input change event containing the selected file.
+ */
 function importData(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -196,11 +215,17 @@ function importData(event: Event) {
   reader.readAsText(file)
 }
 
+/**
+ * Resets the danger zone confirmation UI without clearing data.
+ */
 function cancelClear() {
   showClearConfirmation.value = false
   clearConfirmText.value = ''
 }
 
+/**
+ * Deletes all playground data from localStorage and reloads the page.
+ */
 function executeClear() {
   if (clearConfirmText.value !== 'DELETE') return
 

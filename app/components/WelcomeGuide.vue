@@ -5,9 +5,7 @@
       <div>
         <UIcon name="i-lucide-braces" class="text-5xl text-primary-400 mb-3" />
         <h2 class="text-xl font-semibold text-white">{{ config.app.name }}</h2>
-        <p class="text-sm text-gray-400 mt-1">
-          Enter a GraphQL endpoint URL above to get started
-        </p>
+        <p class="text-sm text-gray-400 mt-1">Enter a GraphQL endpoint URL above to get started</p>
       </div>
 
       <div class="text-left space-y-3">
@@ -19,7 +17,9 @@
           </li>
           <li class="flex gap-2">
             <span class="text-primary-400 font-bold shrink-0">2.</span>
-            Click <strong>Connect</strong> to connect to the endpoint
+            Click
+            <strong>Connect</strong>
+            to connect to the endpoint
           </li>
           <li class="flex gap-2">
             <span class="text-primary-400 font-bold shrink-0">3.</span>
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { playgroundConfig as config } from '~/playground.config'
+import { playgroundConfig as config } from '~~/playground.config'
 
 defineEmits<{
   connect: [url: string, exampleQuery?: string]

@@ -1,13 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { playgroundConfig } from '../../app/playground.config'
+import { playgroundConfig } from '../../playground.config'
 
 // Mock localStorage
 const storage: Record<string, string> = {}
 const localStorageMock = {
   getItem: vi.fn((key: string) => storage[key] || null),
-  setItem: vi.fn((key: string, value: string) => { storage[key] = value }),
-  removeItem: vi.fn((key: string) => { delete storage[key] }),
-  clear: vi.fn(() => { Object.keys(storage).forEach(k => delete storage[k]) })
+  setItem: vi.fn((key: string, value: string) => {
+    storage[key] = value
+  }),
+  removeItem: vi.fn((key: string) => {
+    Reflect.deleteProperty(storage, key)
+  }),
+  clear: vi.fn(() => {
+    Object.keys(storage).forEach((k) => Reflect.deleteProperty(storage, k))
+  })
 }
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock })
 
@@ -47,9 +53,7 @@ describe('Endpoints store logic', () => {
       { url: 'https://new.com/graphql', lastUsed: '2025-01-01T00:00:00Z', label: '', bearerToken: '' }
     ]
 
-    const sorted = [...endpoints].sort(
-      (a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
-    )
+    const sorted = [...endpoints].sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime())
 
     expect(sorted[0].url).toBe('https://new.com/graphql')
   })
@@ -93,9 +97,7 @@ describe('Workspace store logic', () => {
   })
 
   it('close tab prevents closing the last tab', () => {
-    const tabs = [
-      { id: 'tab-1', name: 'Tab 1', query: '', variables: '', results: null }
-    ]
+    const tabs = [{ id: 'tab-1', name: 'Tab 1', query: '', variables: '', results: null }]
 
     // Should not allow closing when only 1 tab
     expect(tabs.length).toBe(1)

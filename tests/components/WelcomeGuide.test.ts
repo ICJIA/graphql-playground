@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { playgroundConfig } from '../../app/playground.config'
+import { playgroundConfig } from '../../playground.config'
 import WelcomeGuide from '../../app/components/WelcomeGuide.vue'
 
 describe('WelcomeGuide', () => {

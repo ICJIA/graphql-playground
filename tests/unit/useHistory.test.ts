@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useHistory } from '../../app/composables/useHistory'
-import { playgroundConfig } from '../../app/playground.config'
+import { playgroundConfig } from '../../playground.config'
 
 // localStorage is mocked in setup.ts via happy-dom
 

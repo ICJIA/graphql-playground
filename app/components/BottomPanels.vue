@@ -7,9 +7,11 @@
         v-for="panel in panels"
         :key="panel.key"
         class="px-3 py-1 text-xs uppercase tracking-wider"
-        :class="activePanel === panel.key && isOpen
-          ? 'text-white border-b-2 border-primary-500'
-          : 'text-gray-500 hover:text-gray-300'"
+        :class="
+          activePanel === panel.key && isOpen
+            ? 'text-white border-b-2 border-primary-500'
+            : 'text-gray-500 hover:text-gray-300'
+        "
         @click="togglePanel(panel.key)"
       >
         {{ panel.label }}
@@ -22,9 +24,9 @@
       <div v-if="activePanel === 'variables'" class="h-full">
         <textarea
           :value="activeTab?.variables || ''"
-          @input="onVariablesChange"
           class="w-full h-full bg-gray-950 text-gray-200 p-2 font-mono text-sm resize-none outline-none border-none"
           placeholder='{"key": "value"}'
+          @input="onVariablesChange"
         />
       </div>
 
@@ -34,11 +36,11 @@
           <label class="text-xs text-gray-400 shrink-0 w-24">Bearer Token</label>
           <UInput
             :model-value="endpointsStore.activeEndpointData?.bearerToken || ''"
-            @update:model-value="onTokenChange"
             type="password"
             placeholder="Enter bearer token..."
             class="flex-1"
             size="sm"
+            @update:model-value="onTokenChange"
           />
         </div>
       </div>
@@ -60,6 +62,7 @@ const panels = [
 
 const activeTab = computed(() => workspaceStore.activeTab)
 
+/** Toggles a panel open/closed; if the same panel is clicked while already open, collapses it. */
 function togglePanel(key: typeof activePanel.value) {
   if (activePanel.value === key && isOpen.value) {
     isOpen.value = false
@@ -69,6 +72,7 @@ function togglePanel(key: typeof activePanel.value) {
   }
 }
 
+/** Syncs the textarea input value to the active tab's variables in the workspace store. */
 function onVariablesChange(event: Event) {
   const value = (event.target as HTMLTextAreaElement).value
   const tab = workspaceStore.activeTab
@@ -77,6 +81,7 @@ function onVariablesChange(event: Event) {
   }
 }
 
+/** Updates the bearer token for the active endpoint. */
 function onTokenChange(value: string) {
   endpointsStore.updateBearerToken(endpointsStore.activeEndpoint, value)
 }

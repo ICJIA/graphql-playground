@@ -6,10 +6,14 @@ import {
   type GraphQLSchema,
   type IntrospectionQuery
 } from 'graphql'
-import { playgroundConfig } from '~/playground.config'
+import { playgroundConfig } from '~~/playground.config'
 
 const LARGE_SCHEMA_THRESHOLD = playgroundConfig.schema.largeSchemaThreshold
 
+/**
+ * Composable for fetching and managing a GraphQL schema via introspection, providing the schema object, SDL, and type information.
+ * @returns Reactive schema state, computed type helpers, and the `fetchSchema` function.
+ */
 export function useSchema() {
   const endpointsStore = useEndpointsStore()
   const toast = useToast()
@@ -21,17 +25,24 @@ export function useSchema() {
   const isLargeSchema = ref(false)
   const typeCount = ref(0)
 
+  /** The root Query type from the introspected schema, or null if unavailable. */
   const queryType = computed(() => schema.value?.getQueryType() || null)
+  /** The root Mutation type from the introspected schema, or null if unavailable. */
   const mutationType = computed(() => schema.value?.getMutationType() || null)
 
+  /** All non-introspection types from the schema, sorted alphabetically by name. */
   const allTypes = computed(() => {
     if (!schema.value) return []
     const typeMap = schema.value.getTypeMap()
     return Object.values(typeMap)
-      .filter(t => !t.name.startsWith('__'))
+      .filter((t) => !t.name.startsWith('__'))
       .sort((a, b) => a.name.localeCompare(b.name))
   })
 
+  /**
+   * Sends an introspection query to the active endpoint's proxy and builds the client schema.
+   * Sets `introspectionDisabled` to true if the endpoint does not support introspection.
+   */
   async function fetchSchema() {
     const endpoint = endpointsStore.activeEndpointData
     if (!endpoint) return
@@ -59,7 +70,7 @@ export function useSchema() {
         schema.value = buildClientSchema(result.data)
         sdl.value = printSchema(schema.value)
 
-        const types = Object.keys(schema.value.getTypeMap()).filter(t => !t.startsWith('__'))
+        const types = Object.keys(schema.value.getTypeMap()).filter((t) => !t.startsWith('__'))
         typeCount.value = types.length
         isLargeSchema.value = types.length > LARGE_SCHEMA_THRESHOLD
       } else {
@@ -78,13 +89,17 @@ export function useSchema() {
   }
 
   // Re-fetch schema when active endpoint changes
-  watch(() => endpointsStore.activeEndpoint, (url) => {
-    if (url) fetchSchema()
-    else {
-      schema.value = null
-      sdl.value = ''
-    }
-  }, { immediate: true })
+  watch(
+    () => endpointsStore.activeEndpoint,
+    (url) => {
+      if (url) fetchSchema()
+      else {
+        schema.value = null
+        sdl.value = ''
+      }
+    },
+    { immediate: true }
+  )
 
   return {
     schema,

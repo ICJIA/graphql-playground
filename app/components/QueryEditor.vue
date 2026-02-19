@@ -24,6 +24,11 @@ const emit = defineEmits<{
   execute: []
 }>()
 
+/**
+ * Creates a CodeMirror theme extension that applies the given font size to the editor content and gutters.
+ * @param {number} size - The font size in pixels.
+ * @returns {import('@codemirror/view').Extension} A CodeMirror theme extension.
+ */
 function fontSizeTheme(size: number) {
   return EditorView.theme({
     '.cm-content': { fontSize: `${size}px` },
@@ -31,6 +36,10 @@ function fontSizeTheme(size: number) {
   })
 }
 
+/**
+ * Destroys the existing editor (if any) and creates a new CodeMirror instance with all extensions.
+ * @param {string} doc - The initial document content for the editor.
+ */
 function createEditor(doc: string) {
   if (editorView) {
     editorView.destroy()
@@ -55,11 +64,7 @@ function createEditor(doc: string) {
       const value = update.state.doc.toString()
       const tab = workspaceStore.activeTab
       if (tab) {
-        workspaceStore.updateTab(
-          endpointsStore.activeEndpoint,
-          tab.id,
-          { query: value }
-        )
+        workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, { query: value })
       }
     }
   })

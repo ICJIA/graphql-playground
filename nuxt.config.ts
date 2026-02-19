@@ -1,7 +1,7 @@
-import { playgroundConfig } from './app/playground.config'
+import { playgroundConfig } from './playground.config'
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@pinia/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxt/eslint'],
 
   css: ['~/assets/css/main.css', '~/assets/css/splitpanes.css'],
 
@@ -10,9 +10,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: playgroundConfig.app.name,
-      meta: [
-        { name: 'description', content: playgroundConfig.app.description }
-      ]
+      meta: [{ name: 'description', content: playgroundConfig.app.description }]
     }
   },
 

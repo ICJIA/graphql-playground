@@ -19,6 +19,7 @@ const toast = useToast()
 
 const historyOpen = ref(false)
 
+/** Parses and re-prints the active tab's GraphQL query for consistent formatting. */
 function prettify() {
   const tab = workspaceStore.activeTab
   if (!tab) return
@@ -30,6 +31,7 @@ function prettify() {
   }
 }
 
+/** Generates a curl command for the current query and copies it to the clipboard. */
 function copyCurl() {
   const endpoint = endpointsStore.activeEndpointData
   const tab = workspaceStore.activeTab
@@ -45,7 +47,9 @@ function copyCurl() {
   if (tab.variables?.trim()) {
     try {
       body.variables = JSON.parse(tab.variables)
-    } catch { /* skip invalid variables */ }
+    } catch {
+      /* skip invalid variables */
+    }
   }
 
   curl += ` \\\n  -d '${JSON.stringify(body)}'`
@@ -54,6 +58,7 @@ function copyCurl() {
   toast.add({ title: 'CURL command copied to clipboard', color: 'success' })
 }
 
+/** Restores a history entry's query and variables into the active tab. */
 function onHistorySelect(entry: HistoryEntry) {
   const tab = workspaceStore.activeTab
   if (!tab) return

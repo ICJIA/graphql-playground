@@ -6,7 +6,9 @@ import ResultsPanel from '../../app/components/ResultsPanel.vue'
 const mockActiveTab = { value: null as any }
 
 vi.stubGlobal('useWorkspaceStore', () => ({
-  get activeTab() { return mockActiveTab.value }
+  get activeTab() {
+    return mockActiveTab.value
+  }
 }))
 
 describe('ResultsPanel', () => {

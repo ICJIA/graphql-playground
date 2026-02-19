@@ -11,7 +11,7 @@
     <div v-if="expanded && hasFields" class="ml-4 space-y-0.5">
       <div v-for="field in fields" :key="field.name" class="text-xs">
         <span class="text-blue-300">{{ field.name }}</span>
-        <span class="text-gray-500">: </span>
+        <span class="text-gray-500">:</span>
         <button class="text-green-400 hover:underline" @click="$emit('navigate', getTypeName(field.type))">
           {{ field.type.toString() }}
         </button>
@@ -51,6 +51,11 @@ const fields = computed(() => {
   return []
 })
 
+/**
+ * Unwraps a GraphQL type and returns the underlying named type's name for navigation.
+ * @param {GraphQLType} type - The GraphQL type to unwrap.
+ * @returns {string} The named type's name, or the type's string representation as a fallback.
+ */
 function getTypeName(type: GraphQLType): string {
   const named = getNamedType(type)
   return named?.name || type.toString()

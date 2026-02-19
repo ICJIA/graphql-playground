@@ -1,4 +1,9 @@
 // app/composables/useGraphQL.ts
+
+/**
+ * Composable providing GraphQL query execution with error handling, variable parsing, and history tracking.
+ * @returns An object containing the `isExecuting` ref and the `executeQuery` function.
+ */
 export function useGraphQL() {
   const endpointsStore = useEndpointsStore()
   const workspaceStore = useWorkspaceStore()
@@ -7,6 +12,10 @@ export function useGraphQL() {
 
   const isExecuting = ref(false)
 
+  /**
+   * Sends the active tab's query to the proxy endpoint, stores the result, and records the query in history.
+   * Parses variables as JSON and attaches authorization headers when a bearer token is configured.
+   */
   async function executeQuery() {
     const endpoint = endpointsStore.activeEndpointData
     const tab = workspaceStore.activeTab

@@ -9,35 +9,51 @@
  * called from external sites or scripts (origin/referer validation).
  */
 
-import { playgroundConfig } from '../../app/playground.config'
+import { playgroundConfig } from '../../playground.config'
 
-const {
-  allowedOrigins: ALLOWED_ORIGINS,
-  allowedHeaders: ALLOWED_HEADERS,
-  blockedHostnames: BLOCKED_HOSTNAMES,
-  maxQueryLength: MAX_QUERY_LENGTH,
-  requestTimeout: REQUEST_TIMEOUT
-} = playgroundConfig.proxy
+const ALLOWED_ORIGINS: readonly string[] = playgroundConfig.proxy.allowedOrigins
+const ALLOWED_HEADERS: readonly string[] = playgroundConfig.proxy.allowedHeaders
+const BLOCKED_HOSTNAMES: readonly string[] = playgroundConfig.proxy.blockedHostnames
+const MAX_QUERY_LENGTH = playgroundConfig.proxy.maxQueryLength
+const REQUEST_TIMEOUT = playgroundConfig.proxy.requestTimeout
 
+/**
+ * Checks whether a hostname resolves to a private, loopback, or reserved IP address (SSRF protection).
+ * Blocks: 10.x, 172.16-31.x, 192.168.x, 127.x (loopback), 0.x, and IPv6-mapped IPv4 addresses.
+ * @param hostname - The hostname string to evaluate.
+ * @returns True if the hostname falls within a private/reserved IP range.
+ */
 function isPrivateIP(hostname: string): boolean {
-  // Block private/reserved IP ranges (SSRF protection)
-  const parts = hostname.split('.').map(Number)
-  if (parts.length === 4 && parts.every(n => !isNaN(n))) {
-    // 10.x.x.x
-    if (parts[0] === 10) return true
-    // 172.16.x.x - 172.31.x.x
-    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true
-    // 192.168.x.x
-    if (parts[0] === 192 && parts[1] === 168) return true
-    // 0.x.x.x
-    if (parts[0] === 0) return true
+  // Strip IPv6-mapped IPv4 prefix (e.g., "::ffff:10.0.0.1" → "10.0.0.1")
+  let normalized = hostname
+  if (normalized.startsWith('::ffff:')) {
+    normalized = normalized.slice(7)
   }
+
+  // Block private/reserved IPv4 ranges
+  const parts = normalized.split('.').map(Number)
+  if (parts.length !== 4 || parts.some((n) => isNaN(n))) return false
+  const [a, b] = parts as [number, number, number, number]
+  // 10.x.x.x (Class A private)
+  if (a === 10) return true
+  // 127.x.x.x (loopback)
+  if (a === 127) return true
+  // 172.16.x.x - 172.31.x.x (Class B private)
+  if (a === 172 && b >= 16 && b <= 31) return true
+  // 192.168.x.x (Class C private)
+  if (a === 192 && b === 168) return true
+  // 0.x.x.x (reserved)
+  if (a === 0) return true
   return false
 }
 
-function sanitizeHeaders(
-  customHeaders: Record<string, string> | undefined
-): Record<string, string> {
+/**
+ * Filters client-provided headers through the configured allowlist.
+ * Always includes `Content-Type: application/json`; other headers are kept only if they appear in the allowlist.
+ * @param customHeaders - Optional record of headers supplied by the client.
+ * @returns A sanitized record of headers safe to forward to the upstream endpoint.
+ */
+function sanitizeHeaders(customHeaders: Record<string, string> | undefined): Record<string, string> {
   const sanitized: Record<string, string> = {
     'Content-Type': 'application/json'
   }
@@ -47,11 +63,7 @@ function sanitizeHeaders(
   }
 
   for (const [key, value] of Object.entries(customHeaders)) {
-    if (
-      typeof key === 'string' &&
-      typeof value === 'string' &&
-      ALLOWED_HEADERS.includes(key.toLowerCase())
-    ) {
+    if (typeof key === 'string' && typeof value === 'string' && ALLOWED_HEADERS.includes(key.toLowerCase())) {
       sanitized[key] = value
     }
   }
@@ -59,6 +71,10 @@ function sanitizeHeaders(
   return sanitized
 }
 
+/**
+ * Main proxy handler that validates the incoming request, enforces security checks
+ * (origin, HTTPS, SSRF, query length), and forwards the GraphQL query to the target endpoint.
+ */
 export default defineEventHandler(async (event) => {
   // --- Origin validation (prevent external abuse) ---
   const origin = getRequestHeader(event, 'origin')
@@ -105,10 +121,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Block requests to private/internal addresses (SSRF protection)
-  if (
-    BLOCKED_HOSTNAMES.includes(parsedUrl.hostname) ||
-    isPrivateIP(parsedUrl.hostname)
-  ) {
+  if (BLOCKED_HOSTNAMES.includes(parsedUrl.hostname) || isPrivateIP(parsedUrl.hostname)) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Requests to private or internal addresses are not allowed'

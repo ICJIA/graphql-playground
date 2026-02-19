@@ -6,12 +6,7 @@
       <div class="flex-1">
         <EndpointSelector ref="endpointSelector" />
       </div>
-      <UButton
-        icon="i-lucide-settings"
-        variant="ghost"
-        color="neutral"
-        @click="settingsOpen = true"
-      />
+      <UButton icon="i-lucide-settings" variant="ghost" color="neutral" @click="settingsOpen = true" />
     </div>
 
     <!-- Connected: show playground -->
@@ -86,6 +81,7 @@ const endpointSelector = ref()
 const schemaState = useSchema()
 provide('schemaState', schemaState)
 
+/** Handles quick-connect from the welcome guide: connects to the endpoint and optionally pre-populates the first tab with an example query. */
 function onQuickConnect(url: string, exampleQuery?: string) {
   // Trigger connection via the EndpointSelector
   endpointSelector.value?.connectToUrl(url)

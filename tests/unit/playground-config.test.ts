@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { playgroundConfig } from '../../app/playground.config'
+import { playgroundConfig } from '../../playground.config'
 
 describe('playground.config', () => {
   describe('app metadata', () => {
@@ -10,16 +10,15 @@ describe('playground.config', () => {
       expect(playgroundConfig.app.repository).toContain('github.com')
     })
 
-    it('uses the correct Netlify URL', () => {
-      expect(playgroundConfig.app.liveUrl).toBe('https://icjia-graphql-playground.netlify.app')
+    it('uses the correct production URL', () => {
+      expect(playgroundConfig.app.liveUrl).toBe('https://playground.icjia.app')
     })
   })
 
   describe('proxy settings', () => {
-    it('includes production origin in allowed origins', () => {
-      expect(playgroundConfig.proxy.allowedOrigins).toContain(
-        'https://icjia-graphql-playground.netlify.app'
-      )
+    it('includes production origins in allowed origins', () => {
+      expect(playgroundConfig.proxy.allowedOrigins).toContain('https://playground.icjia.app')
+      expect(playgroundConfig.proxy.allowedOrigins).toContain('https://icjia-graphql-playground.netlify.app')
     })
 
     it('includes localhost origins for development', () => {
@@ -28,7 +27,7 @@ describe('playground.config', () => {
 
     it('does not include the old Netlify URL', () => {
       const origins = playgroundConfig.proxy.allowedOrigins
-      expect(origins.every(o => !o.includes('graphql-playground-updated'))).toBe(true)
+      expect(origins.every((o) => !o.includes('graphql-playground-updated'))).toBe(true)
     })
 
     it('has required security headers in allowlist', () => {

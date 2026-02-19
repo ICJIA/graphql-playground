@@ -40,7 +40,7 @@ function extractRows(data: any): Record<string, any>[] {
     return [flattenObject(data.data)]
   }
   if (Array.isArray(data)) {
-    return data.map((item: any) => typeof item === 'object' ? flattenObject(item) : { value: item })
+    return data.map((item: any) => (typeof item === 'object' ? flattenObject(item) : { value: item }))
   }
   return [flattenObject(data)]
 }
@@ -68,9 +68,7 @@ function toCsv(data: any): string {
   if (rows.length === 0) return ''
   const columns = getColumns(rows)
   const header = columns.map(escapeCsvField).join(',')
-  const body = rows.map(row =>
-    columns.map(col => escapeCsvField(row[col])).join(',')
-  ).join('\n')
+  const body = rows.map((row) => columns.map((col) => escapeCsvField(row[col])).join(',')).join('\n')
   return `${header}\n${body}`
 }
 
@@ -80,13 +78,18 @@ function toMarkdownTable(data: any): string {
   const columns = getColumns(rows)
   const header = `| ${columns.join(' | ')} |`
   const separator = `| ${columns.map(() => '---').join(' | ')} |`
-  const body = rows.map(row =>
-    `| ${columns.map(col => {
-      const val = row[col]
-      const str = val == null ? '' : String(val)
-      return str.replace(/\|/g, '\\|').replace(/\n/g, ' ')
-    }).join(' | ')} |`
-  ).join('\n')
+  const body = rows
+    .map(
+      (row) =>
+        `| ${columns
+          .map((col) => {
+            const val = row[col]
+            const str = val == null ? '' : String(val)
+            return str.replace(/\|/g, '\\|').replace(/\n/g, ' ')
+          })
+          .join(' | ')} |`
+    )
+    .join('\n')
   return `${header}\n${separator}\n${body}`
 }
 
@@ -96,33 +99,47 @@ function toYaml(data: any, indent = 0): string {
   if (typeof data === 'boolean') return `${pad}${data}`
   if (typeof data === 'number') return `${pad}${data}`
   if (typeof data === 'string') {
-    if (data.includes('\n') || data.includes(': ') || data.includes('#') ||
-        data.startsWith('{') || data.startsWith('[') || data.startsWith('"') ||
-        data.startsWith("'") || data === '' || data === 'true' || data === 'false' ||
-        data === 'null' || /^\d/.test(data)) {
+    if (
+      data.includes('\n') ||
+      data.includes(': ') ||
+      data.includes('#') ||
+      data.startsWith('{') ||
+      data.startsWith('[') ||
+      data.startsWith('"') ||
+      data.startsWith("'") ||
+      data === '' ||
+      data === 'true' ||
+      data === 'false' ||
+      data === 'null' ||
+      /^\d/.test(data)
+    ) {
       return `${pad}"${data.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
     }
     return `${pad}${data}`
   }
   if (Array.isArray(data)) {
     if (data.length === 0) return `${pad}[]`
-    return data.map(item => {
-      if (typeof item === 'object' && item !== null) {
-        const inner = toYaml(item, indent + 1).trimStart()
-        return `${pad}- ${inner}`
-      }
-      return `${pad}- ${typeof item === 'string' ? toYaml(item, 0).trim() : item}`
-    }).join('\n')
+    return data
+      .map((item) => {
+        if (typeof item === 'object' && item !== null) {
+          const inner = toYaml(item, indent + 1).trimStart()
+          return `${pad}- ${inner}`
+        }
+        return `${pad}- ${typeof item === 'string' ? toYaml(item, 0).trim() : item}`
+      })
+      .join('\n')
   }
   if (typeof data === 'object') {
     const entries = Object.entries(data)
     if (entries.length === 0) return `${pad}{}`
-    return entries.map(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        return `${pad}${key}:\n${toYaml(value, indent + 1)}`
-      }
-      return `${pad}${key}: ${toYaml(value, 0).trim()}`
-    }).join('\n')
+    return entries
+      .map(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          return `${pad}${key}:\n${toYaml(value, indent + 1)}`
+        }
+        return `${pad}${key}: ${toYaml(value, 0).trim()}`
+      })
+      .join('\n')
   }
   return `${pad}${String(data)}`
 }
@@ -164,7 +181,14 @@ describe('flattenObject', () => {
 
 describe('extractRows', () => {
   it('extracts array from data.field', () => {
-    const data = { data: { users: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }] } }
+    const data = {
+      data: {
+        users: [
+          { id: 1, name: 'A' },
+          { id: 2, name: 'B' }
+        ]
+      }
+    }
     const rows = extractRows(data)
     expect(rows).toHaveLength(2)
     expect(rows[0]).toEqual({ id: 1, name: 'A' })
@@ -190,7 +214,14 @@ describe('extractRows', () => {
 
 describe('toCsv', () => {
   it('converts array result to CSV', () => {
-    const data = { data: { users: [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }] } }
+    const data = {
+      data: {
+        users: [
+          { id: 1, name: 'Alice' },
+          { id: 2, name: 'Bob' }
+        ]
+      }
+    }
     const csv = toCsv(data)
     expect(csv).toContain('id,name')
     expect(csv).toContain('1,Alice')

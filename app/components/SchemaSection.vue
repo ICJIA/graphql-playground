@@ -14,13 +14,13 @@
         <span class="text-gray-500">(</span>
         <span v-for="(arg, i) in field.args" :key="arg.name">
           <span class="text-yellow-300">{{ arg.name }}</span>
-          <span class="text-gray-500">: </span>
+          <span class="text-gray-500">:</span>
           <button class="text-green-400 hover:underline" @click="$emit('navigate', getNamedTypeName(arg.type))">
             {{ arg.type.toString() }}
           </button>
-          <span v-if="i < field.args.length - 1" class="text-gray-500">, </span>
+          <span v-if="i < field.args.length - 1" class="text-gray-500">,</span>
         </span>
-        <span class="text-gray-500">): </span>
+        <span class="text-gray-500">):</span>
         <button class="text-green-400 hover:underline" @click="$emit('navigate', getNamedTypeName(field.type))">
           {{ field.type.toString() }}
         </button>
@@ -48,9 +48,14 @@ const filteredFields = computed(() => {
   const fields = Object.values(props.type.getFields())
   if (!props.search) return fields
   const q = props.search.toLowerCase()
-  return fields.filter(f => f.name.toLowerCase().includes(q))
+  return fields.filter((f) => f.name.toLowerCase().includes(q))
 })
 
+/**
+ * Unwraps a GraphQL type (stripping NonNull/List wrappers) and returns the named type's name.
+ * @param {GraphQLType} type - The GraphQL type to unwrap.
+ * @returns {string} The underlying named type's name, or the type's string representation as a fallback.
+ */
 function getNamedTypeName(type: GraphQLType): string {
   const named = getNamedType(type)
   return named?.name || type.toString()

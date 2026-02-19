@@ -2,7 +2,7 @@
 
 A modern, configurable GraphQL playground built with Nuxt 4, Nuxt UI 4, and CodeMirror 6. Works with **any public GraphQL endpoint** and supports **bearer token authentication** for secured APIs. Solves the CORS problem with a built-in serverless proxy.
 
-**Live:** [https://icjia-graphql-playground.netlify.app](https://icjia-graphql-playground.netlify.app)
+**Live:** [https://playground.icjia.app](https://playground.icjia.app)
 
 ---
 
@@ -92,7 +92,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 105 tests (unit, component, API) via Vitest |
+| Test suite | None | 108 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -145,7 +145,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 
 ### Try the live version
 
-Visit [https://icjia-graphql-playground.netlify.app](https://icjia-graphql-playground.netlify.app) and enter a GraphQL endpoint URL to get started. Try one of these public endpoints:
+Visit [https://playground.icjia.app](https://playground.icjia.app) and enter a GraphQL endpoint URL to get started. Try one of these public endpoints:
 
 ```
 https://countries.trevorblades.com/graphql
@@ -224,7 +224,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 105 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 108 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -240,7 +240,7 @@ yarn test:watch
 | `tests/unit/stores.test.ts` | 11 | Pinia store persistence, endpoint sorting, workspace defaults |
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
-| `tests/api/graphql-proxy.test.ts` | 35 | SSRF blocking, header sanitization, origin validation, URL checks, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
+| `tests/api/graphql-proxy.test.ts` | 38 | SSRF blocking (IPv4, IPv6-mapped, loopback), header sanitization, origin validation, URL checks, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
 | `tests/components/WelcomeGuide.test.ts` | 5 | Rendering, example endpoints, emit events, content |
 | `tests/components/ResultsPanel.test.ts` | 4 | Placeholder state, results display, button visibility |
 
@@ -248,16 +248,23 @@ yarn test:watch
 
 ## Configuration
 
-All build-time constants are centralized in `app/playground.config.ts`. This is the single source of truth for:
+All build-time constants are centralized in **`playground.config.ts`** (project root). The file is organized into two sections:
+
+**User-configurable (top of file)** — values you should change for your own deployment:
 
 - App metadata (name, version, URLs)
-- Proxy security settings (allowed origins, headers, blocked hosts, limits)
-- Schema thresholds
-- localStorage key names
-- Default runtime settings
 - Example endpoints shown in the quick-start guide
+- Default editor settings (font size, autocomplete)
+- Allowed origins for the CORS proxy
 
-Runtime user preferences (font size, autocomplete toggle) are managed in the Settings panel and persisted to localStorage.
+**Internal / do not change (bottom of file)** — security and infrastructure settings:
+
+- Proxy hardening (allowed headers, blocked hostnames, SSRF protection)
+- Schema introspection thresholds
+- Query history limits
+- localStorage key names (changing these orphans existing user data)
+
+Every setting has a JSDoc comment explaining what it does and whether it's safe to modify. Runtime user preferences (font size, autocomplete toggle) are managed in the Settings panel and persisted to localStorage.
 
 ---
 
@@ -363,6 +370,24 @@ When you open a GraphQL playground in your browser and try to query an API on a 
 
 The proxy solves this: your browser sends the request to the same domain (the Netlify function), and the function forwards it to the target API server-side. From the browser's perspective, the request never leaves the same origin.
 
+### What is the serverless function?
+
+If you're new to Netlify or serverless architectures, this section explains how the proxy works.
+
+A **serverless function** is a small piece of server-side code that runs on demand — Netlify spins up a temporary container when a request arrives, executes the code, returns the response, and then shuts down. There is no always-running server; the function exists only for the duration of each request. On Netlify, serverless functions are deployed automatically alongside your static site — no separate server, no infrastructure to manage.
+
+This project uses a single serverless function: **`/api/graphql-proxy`** (source: `server/api/graphql-proxy.post.ts`). It acts as a pass-through relay between your browser and the target GraphQL API:
+
+1. Your browser sends a POST request to `/api/graphql-proxy` on the same domain as the playground.
+2. The function validates the request (checks origin, URL format, SSRF protection, query size).
+3. If validation passes, the function makes its own HTTP request to the target GraphQL API — this is server-to-server, so CORS restrictions don't apply.
+4. The function returns the API response to your browser.
+5. The function's execution context is destroyed — nothing is saved, logged, or retained.
+
+**Why can't this be a static site?** A static site (HTML, CSS, JS only) has no server-side code. Without the proxy function, the browser would need to call the target API directly — and the browser's [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) would block the request unless the target API explicitly allows your domain via CORS headers. Most GraphQL APIs don't do this for arbitrary origins.
+
+**What about other hosting platforms?** The serverless function uses [Nitro](https://nitro.build/), Nuxt's server engine, which supports many deployment targets: Vercel, Cloudflare Workers, Deno Deploy, AWS Lambda, and more. Change the `nitro.preset` in `nuxt.config.ts` to deploy elsewhere — the only requirement is that the platform supports server-side code execution (serverless functions or edge functions).
+
 ### How the bearer token is transmitted
 
 When you add a bearer token for an endpoint, it's stored in `localStorage` alongside the endpoint URL. When you execute a query, the token travels over **two HTTPS-encrypted hops**:
@@ -399,7 +424,7 @@ All user data is stored in the browser's `localStorage`. Nothing is sent to any 
 | `gql-playground-endpoints` | Array of saved endpoints (URL, label, last used, bearer token) |
 | `gql-playground-active-endpoint` | Currently selected endpoint URL |
 | `gql-playground-workspaces` | Per-endpoint tabs with query content, variables, and results |
-| `gql-playground-history` | Query execution history (last 50 entries per endpoint) |
+| `gql-playground-history` | Query execution history (last 50 entries total across all endpoints) |
 | `gql-playground-settings` | User preferences (font size, autocomplete toggle) |
 
 To clear all saved data, use the Settings panel (gear icon > Danger Zone) or open browser DevTools > Application > Local Storage and delete the keys.
@@ -423,7 +448,7 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 | **Request timeout** | Upstream requests time out after 30 seconds. |
 | **POST only** | The proxy only accepts POST requests (enforced by Nitro's `.post.ts` file naming). |
 
-All security constants are defined in `playground.config.ts` and imported by the proxy at build time.
+All security constants are defined in `playground.config.ts` (project root) and imported by the proxy at build time.
 
 ### Netlify Pro plan protections
 
@@ -501,7 +526,6 @@ graphql-playground/
 │   │   └── settings.ts           # Pinia store: user preferences
 │   ├── types/
 │   │   └── index.ts              # TypeScript interfaces
-│   ├── playground.config.ts      # Single source of truth: build-time constants & defaults
 │   ├── pages/
 │   │   └── index.vue             # Single page entry point
 │   └── app.vue                   # Root app component with UApp wrapper
@@ -514,6 +538,7 @@ graphql-playground/
 │   └── api/                      # Server route tests
 ├── docs/
 │   └── plans/                    # Design and implementation planning documents
+├── playground.config.ts           # Single source of truth: build-time constants & defaults
 ├── nuxt.config.ts                # Nuxt configuration (SPA mode, dark theme, Netlify preset)
 ├── netlify.toml                  # Netlify build and deploy configuration
 ├── vitest.config.ts              # Vitest configuration
@@ -538,7 +563,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (105 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (108 tests) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |
 
 ---

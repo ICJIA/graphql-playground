@@ -5,14 +5,14 @@
     <button
       class="px-1 py-3 bg-gray-800 text-gray-400 hover:text-white text-xs tracking-widest border border-gray-700 rounded-l"
       style="writing-mode: vertical-lr"
-      @click="isOpen = true; activeView = 'docs'"
+      @click="openPanel('docs')"
     >
       DOCS
     </button>
     <button
       class="px-1 py-3 bg-gray-800 text-gray-400 hover:text-white text-xs tracking-widest border border-gray-700 border-t-0 rounded-l"
       style="writing-mode: vertical-lr"
-      @click="isOpen = true; activeView = 'schema'"
+      @click="openPanel('schema')"
     >
       SCHEMA
     </button>
@@ -109,12 +109,7 @@
             Types ({{ filteredTypes.length }})
           </button>
           <div v-if="typesExpanded" class="ml-4 space-y-1">
-            <SchemaTypeDetail
-              v-for="type in filteredTypes"
-              :key="type.name"
-              :type="type"
-              @navigate="navigateTo"
-            />
+            <SchemaTypeDetail v-for="type in filteredTypes" :key="type.name" :type="type" @navigate="navigateTo" />
           </div>
         </div>
       </div>
@@ -146,9 +141,7 @@ import {
   isUnionType,
   isScalarType,
   type GraphQLObjectType,
-  type GraphQLField,
-  type GraphQLType,
-  getNamedType
+  type GraphQLField
 } from 'graphql'
 
 const schemaState = inject<ReturnType<typeof useSchema>>('schemaState')!
@@ -160,18 +153,31 @@ const activeView = ref<'docs' | 'schema'>('docs')
 const search = ref('')
 const typesExpanded = ref(false)
 
+function openPanel(view: 'docs' | 'schema') {
+  isOpen.value = true
+  activeView.value = view
+}
+
 const filteredTypes = computed(() => {
   const types = schemaState.allTypes.value
   if (!search.value) return types
   const q = search.value.toLowerCase()
-  return types.filter(t => t.name.toLowerCase().includes(q))
+  return types.filter((t) => t.name.toLowerCase().includes(q))
 })
 
+/**
+ * Sets the search filter to a type name and expands the types section for navigation.
+ * @param {string} typeName - The type name to navigate to.
+ */
 function navigateTo(typeName: string) {
   search.value = typeName
   typesExpanded.value = true
 }
 
+/**
+ * Converts the active endpoint URL hostname into a filename-safe slug.
+ * @returns {string} A slug derived from the hostname with dots replaced by dashes.
+ */
 function getEndpointSlug(): string {
   try {
     const url = new URL(endpointsStore.activeEndpoint)
@@ -181,6 +187,12 @@ function getEndpointSlug(): string {
   }
 }
 
+/**
+ * Creates a temporary Blob URL and triggers a browser file download.
+ * @param {string} content - The file content to download.
+ * @param {string} filename - The suggested filename for the download.
+ * @param {string} type - The MIME type of the file.
+ */
 function downloadFile(content: string, filename: string, type: string) {
   const blob = new Blob([content], { type })
   const url = URL.createObjectURL(blob)
@@ -191,6 +203,9 @@ function downloadFile(content: string, filename: string, type: string) {
   URL.revokeObjectURL(url)
 }
 
+/**
+ * Downloads the current schema as a `.graphql` SDL file.
+ */
 function downloadSdl() {
   if (!schemaState.sdl.value) return
   const slug = getEndpointSlug()
@@ -198,12 +213,17 @@ function downloadSdl() {
   toast.add({ title: 'Schema SDL downloaded', color: 'success' })
 }
 
+/**
+ * Converts a GraphQL object type's fields into a plain JSON-serializable structure.
+ * @param {GraphQLObjectType} type - The GraphQL object type whose fields to serialize.
+ * @returns {Array<Object>} An array of field descriptors with name, description, type, and args.
+ */
 function serializeFields(type: GraphQLObjectType) {
   return Object.values(type.getFields()).map((field: GraphQLField<any, any>) => ({
     name: field.name,
     description: field.description || null,
     type: field.type.toString(),
-    args: field.args.map(arg => ({
+    args: field.args.map((arg) => ({
       name: arg.name,
       description: arg.description || null,
       type: arg.type.toString(),
@@ -212,6 +232,9 @@ function serializeFields(type: GraphQLObjectType) {
   }))
 }
 
+/**
+ * Exports the full schema documentation as structured JSON, useful for LLM consumption.
+ */
 function downloadDocsJson() {
   const schema = schemaState.schema.value
   if (!schema) return
@@ -235,7 +258,7 @@ function downloadDocsJson() {
   }
 
   // Types
-  docs.types = schemaState.allTypes.value.map(type => {
+  docs.types = schemaState.allTypes.value.map((type) => {
     const entry: Record<string, any> = {
       name: type.name,
       description: (type as any).description || null,
@@ -247,25 +270,27 @@ function downloadDocsJson() {
         name: f.name,
         description: f.description || null,
         type: f.type.toString(),
-        ...(f.args ? {
-          args: f.args.map((a: any) => ({
-            name: a.name,
-            description: a.description || null,
-            type: a.type.toString()
-          }))
-        } : {})
+        ...(f.args
+          ? {
+              args: f.args.map((a: any) => ({
+                name: a.name,
+                description: a.description || null,
+                type: a.type.toString()
+              }))
+            }
+          : {})
       }))
     }
 
     if (isEnumType(type)) {
-      entry.values = type.getValues().map(v => ({
+      entry.values = type.getValues().map((v) => ({
         name: v.name,
         description: v.description || null
       }))
     }
 
     if (isUnionType(type)) {
-      entry.possibleTypes = type.getTypes().map(t => t.name)
+      entry.possibleTypes = type.getTypes().map((t) => t.name)
     }
 
     return entry
@@ -277,6 +302,11 @@ function downloadDocsJson() {
   toast.add({ title: 'Schema docs JSON downloaded', color: 'success' })
 }
 
+/**
+ * Returns the GraphQL type kind string (OBJECT, INTERFACE, ENUM, etc.) for a given type.
+ * @param {any} type - The GraphQL named type to classify.
+ * @returns {string} The type kind string, or 'UNKNOWN' if unrecognized.
+ */
 function getTypeKind(type: any): string {
   if (isObjectType(type)) return 'OBJECT'
   if (isInterfaceType(type)) return 'INTERFACE'

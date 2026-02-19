@@ -1,20 +1,18 @@
 <!-- app/components/TabBar.vue -->
 <template>
-  <div class="flex items-center gap-1 overflow-x-auto" v-if="endpointsStore.activeEndpoint">
+  <div v-if="endpointsStore.activeEndpoint" class="flex items-center gap-1 overflow-x-auto">
     <div
       v-for="tab in workspaceStore.currentTabs"
       :key="tab.id"
       class="flex items-center gap-1 px-3 py-1 rounded-t text-sm cursor-pointer shrink-0 group"
-      :class="tab.id === workspaceStore.activeTab?.id
-        ? 'bg-gray-800 text-white'
-        : 'bg-gray-900 text-gray-400 hover:text-gray-200'"
+      :class="
+        tab.id === workspaceStore.activeTab?.id
+          ? 'bg-gray-800 text-white'
+          : 'bg-gray-900 text-gray-400 hover:text-gray-200'
+      "
       @click="workspaceStore.setActiveTab(endpointsStore.activeEndpoint, tab.id)"
     >
-      <span
-        v-if="editingTabId !== tab.id"
-        @dblclick="startRenaming(tab.id, tab.name)"
-        class="max-w-32 truncate"
-      >
+      <span v-if="editingTabId !== tab.id" class="max-w-32 truncate" @dblclick="startRenaming(tab.id, tab.name)">
         {{ tab.name }}
       </span>
       <UInput
@@ -55,6 +53,7 @@ const editingTabId = ref<string | null>(null)
 const editingName = ref('')
 const renameInputRef = ref<InstanceType<typeof UInput> | null>(null)
 
+/** Activates inline rename mode for a tab, focusing the input and selecting its text. */
 function startRenaming(tabId: string, currentName: string) {
   editingTabId.value = tabId
   editingName.value = currentName
@@ -71,13 +70,10 @@ function startRenaming(tabId: string, currentName: string) {
   })
 }
 
+/** Saves the new tab name and disables auto-naming to preserve the user's manual rename. */
 function finishRenaming(tabId: string) {
   if (editingName.value.trim()) {
-    workspaceStore.updateTab(
-      endpointsStore.activeEndpoint,
-      tabId,
-      { name: editingName.value.trim(), autoName: false }
-    )
+    workspaceStore.updateTab(endpointsStore.activeEndpoint, tabId, { name: editingName.value.trim(), autoName: false })
   }
   editingTabId.value = null
 }
