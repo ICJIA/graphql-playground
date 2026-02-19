@@ -8,8 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "node --require ./tests/crypto-setup.cjs ./node_modules/.bin/vitest run",
-    "test:watch": "node --require ./tests/crypto-setup.cjs ./node_modules/.bin/vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
