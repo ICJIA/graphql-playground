@@ -77,7 +77,8 @@ function createEditor(doc: string) {
         EditorView.theme({
           '&': { height: '100%', backgroundColor: '#111827' },
           '.cm-scroller': { overflow: 'auto' },
-          '.cm-gutters': { backgroundColor: '#111827', borderRight: '1px solid #1f2937' }
+          '.cm-gutters': { backgroundColor: '#111827', borderRight: '1px solid #1f2937' },
+          '.cm-completionDetail': { display: 'none' }
         })
       ]
     }),
