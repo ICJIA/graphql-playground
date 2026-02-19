@@ -111,13 +111,18 @@
         </div>
 
         <!-- App Info -->
-        <div class="text-xs text-gray-600 space-y-1">
+        <div class="text-xs text-gray-600 space-y-2">
           <p>{{ config.app.name }} v{{ config.app.version }}</p>
-          <p>
-            <a :href="config.app.repository" target="_blank" class="text-primary-500 hover:underline">
-              GitHub
+          <div class="flex items-center gap-3">
+            <a :href="config.app.repository" target="_blank" class="inline-flex items-center gap-1 text-primary-500 hover:underline">
+              <UIcon name="i-lucide-github" class="text-sm" />
+              GitHub Repository
             </a>
-          </p>
+            <a :href="config.app.liveUrl" target="_blank" class="inline-flex items-center gap-1 text-primary-500 hover:underline">
+              <UIcon name="i-lucide-external-link" class="text-sm" />
+              Live Site
+            </a>
+          </div>
         </div>
       </div>
     </template>

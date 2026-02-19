@@ -4,7 +4,7 @@ import { playgroundConfig } from '../../app/playground.config'
 describe('playground.config', () => {
   describe('app metadata', () => {
     it('has required app fields', () => {
-      expect(playgroundConfig.app.name).toBe('GraphQL Playground')
+      expect(playgroundConfig.app.name).toBe('ICJIA GraphQL Playground')
       expect(playgroundConfig.app.version).toBeTruthy()
       expect(playgroundConfig.app.liveUrl).toContain('https://')
       expect(playgroundConfig.app.repository).toContain('github.com')

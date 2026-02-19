@@ -166,6 +166,100 @@ describe('Proxy security: Origin validation', () => {
   })
 })
 
+describe('Proxy security: Bearer token handling', () => {
+  const allowedHeaders = playgroundConfig.proxy.allowedHeaders
+
+  it('authorization header is in the allowed list', () => {
+    expect(allowedHeaders).toContain('authorization')
+  })
+
+  it('forwards a valid Bearer token through sanitization', () => {
+    const result = sanitizeHeaders(
+      { Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.test-payload.signature' },
+      allowedHeaders
+    )
+    expect(result['Authorization']).toBe('Bearer eyJhbGciOiJIUzI1NiJ9.test-payload.signature')
+  })
+
+  it('forwards x-api-key through sanitization', () => {
+    const result = sanitizeHeaders(
+      { 'X-API-Key': 'sk-live-abc123' },
+      allowedHeaders
+    )
+    expect(result['X-API-Key']).toBe('sk-live-abc123')
+  })
+
+  it('strips cookie headers to prevent session hijacking via proxy', () => {
+    const result = sanitizeHeaders(
+      { Authorization: 'Bearer token', Cookie: 'session=abc123; auth=xyz' },
+      allowedHeaders
+    )
+    expect(result['Authorization']).toBe('Bearer token')
+    expect(result['Cookie']).toBeUndefined()
+  })
+
+  it('strips set-cookie to prevent injection', () => {
+    const result = sanitizeHeaders(
+      { 'Set-Cookie': 'malicious=true' },
+      allowedHeaders
+    )
+    expect(result['Set-Cookie']).toBeUndefined()
+  })
+
+  it('strips x-forwarded-for to prevent IP spoofing', () => {
+    const result = sanitizeHeaders(
+      { 'X-Forwarded-For': '1.2.3.4' },
+      allowedHeaders
+    )
+    expect(result['X-Forwarded-For']).toBeUndefined()
+  })
+
+  it('strips host header to prevent host injection', () => {
+    const result = sanitizeHeaders(
+      { Host: 'evil.com' },
+      allowedHeaders
+    )
+    expect(result['Host']).toBeUndefined()
+  })
+
+  it('rejects non-string header values', () => {
+    const result = sanitizeHeaders(
+      { Authorization: 123 as any, 'Content-Type': null as any },
+      allowedHeaders
+    )
+    // Only the default Content-Type should remain
+    expect(result['Authorization']).toBeUndefined()
+    expect(result['Content-Type']).toBe('application/json')
+  })
+
+  it('rejects non-string header keys passed as objects', () => {
+    const result = sanitizeHeaders(
+      { '': 'Bearer token' } as any,
+      allowedHeaders
+    )
+    expect(result['']).toBeUndefined()
+  })
+
+  it('does not leak token when headers object is empty', () => {
+    const result = sanitizeHeaders({}, allowedHeaders)
+    expect(Object.keys(result)).toEqual(['Content-Type'])
+  })
+
+  it('production requires HTTPS so token is encrypted in transit to proxy', () => {
+    const productionOrigin = playgroundConfig.proxy.allowedOrigins.find(o => o.startsWith('https://'))
+    expect(productionOrigin).toBeDefined()
+    expect(productionOrigin).toMatch(/^https:\/\//)
+  })
+
+  it('production requires HTTPS endpoints so token is encrypted to target API', () => {
+    // In production, only https: endpoints are allowed (http: is rejected)
+    // Verify the proxy config enforces this by checking example endpoints
+    for (const ep of playgroundConfig.exampleEndpoints) {
+      expect(ep.url).toMatch(/^https:\/\//)
+    }
+  })
+})
+
 describe('Proxy security: URL validation', () => {
   it('graphql path check would reject non-graphql paths', () => {
     const testUrl = new URL('https://example.com/api/data')

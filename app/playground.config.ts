@@ -9,7 +9,7 @@
 export const playgroundConfig = {
   /** Application metadata */
   app: {
-    name: 'GraphQL Playground',
+    name: 'ICJIA GraphQL Playground',
     description: 'A modern, configurable GraphQL playground',
     version: '1.1.0',
     repository: 'https://github.com/cschweda/graphql-playground',

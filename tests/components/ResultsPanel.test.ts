@@ -16,7 +16,11 @@ describe('ResultsPanel', () => {
         UIcon: { template: '<span class="icon" />' },
         UButton: {
           template: '<button @click="$emit(\'click\')">{{ label }}</button>',
-          props: ['label', 'icon', 'variant', 'color', 'size']
+          props: ['label', 'icon', 'variant', 'color', 'size', 'trailing-icon']
+        },
+        UDropdownMenu: {
+          template: '<div class="dropdown"><slot /></div>',
+          props: ['items']
         }
       }
     }
