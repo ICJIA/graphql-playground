@@ -89,10 +89,10 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | State persistence | Session only | Full localStorage persistence across browser sessions |
 | Download results | No | Yes — JSON, CSV, Markdown, YAML, TypeScript |
 | Settings & customization | None | Font size, data export/import |
-| Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch |
+| Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch, re-openable via status bar |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 122 tests (unit, component, API) via Vitest |
+| Test suite | None | 138 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -134,7 +134,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 **Settings & Persistence**
 - **Query history** — browse and re-run previously executed queries (per-endpoint)
 - **Settings panel** — adjust editor font size, export/import data, clear all saved data (with confirmation)
-- **Quick-start guide** — example endpoints and usage instructions shown on first launch
+- **Quick-start guide** — example endpoints and usage instructions shown on first launch, re-openable anytime via the Quickstart link in the status bar
 - **Full persistence** — everything is saved to `localStorage` and restored when you return
 - **Export / Import** — export all saved data as JSON, import on another machine
 - **Dark theme** — optimized for extended use
@@ -236,7 +236,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 122 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 138 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -252,8 +252,8 @@ yarn test:watch
 | `tests/unit/stores.test.ts` | 11 | Pinia store persistence, endpoint sorting, workspace defaults |
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
-| `tests/api/graphql-proxy.test.ts` | 50 | SSRF blocking (IPv4, IPv6-mapped, loopback, DNS resolution), header sanitization, origin validation, URL checks, shell escape for CURL copy, redirect protection, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
-| `tests/components/WelcomeGuide.test.ts` | 7 | Rendering, example endpoints, manual endpoint option, emit events, content |
+| `tests/api/graphql-proxy.test.ts` | 64 | SSRF blocking (IPv4, IPv6, IPv6-mapped, link-local/metadata, DNS resolution), CRLF header injection, header sanitization, origin validation, URL checks, shell escape for CURL copy, redirect protection, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
+| `tests/components/WelcomeGuide.test.ts` | 9 | Rendering, example endpoints, manual endpoint option, emit events, content, modal prop styling |
 | `tests/components/ResultsPanel.test.ts` | 4 | Placeholder state, results display, button visibility |
 
 ---
@@ -454,10 +454,10 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 | **Origin validation** | The proxy only accepts requests from the playground app itself. External sites, scripts, and `curl` commands cannot use the proxy in production. Enforced via `Origin` / `Referer` header checking against an allowlist. |
 | **GraphQL path check** | The target endpoint URL must contain `graphql` in the path. This prevents the proxy from being used as a general-purpose HTTP relay. |
 | **HTTPS enforcement** | In production, only HTTPS endpoints are allowed. HTTP is permitted in development only. |
-| **SSRF protection** | Requests to `localhost`, `127.0.0.1`, `0.0.0.0`, `[::1]`, private IP ranges (`10.x.x.x`, `127.x.x.x`, `172.16-31.x.x`, `192.168.x.x`), IPv6-mapped private addresses (`::ffff:*`), and cloud metadata endpoints (`169.254.169.254`) are blocked. |
-| **DNS resolution check** | After hostname validation, the proxy resolves the hostname via DNS and checks the resolved IP against private ranges. This prevents SSRF bypasses via non-standard IP formats (hex, octal, decimal), short-form IPs, and domains that resolve to internal addresses. |
-| **Redirect blocking** | The proxy does not follow HTTP redirects (`redirect: 'manual'`). This prevents attackers from using a public domain that 302-redirects to internal services (e.g., cloud metadata endpoints). |
-| **Header allowlist** | Only safe headers are forwarded: `Authorization`, `Content-Type`, `Accept`, `X-API-Key`, `X-Request-ID`. All other headers from the client are silently dropped. |
+| **SSRF protection** | Requests to `localhost`, `127.0.0.1`, `0.0.0.0`, `[::1]`, private IPv4 ranges (`10/8`, `127/8`, `172.16/12`, `192.168/16`), link-local / cloud metadata (`169.254/16`), IPv6 loopback (`::1`), IPv6 unique local (`fc00::/7`), IPv6 link-local (`fe80::/10`), and IPv6-mapped private addresses (`::ffff:*`) are all blocked. |
+| **DNS-pinned requests** | The proxy resolves the hostname via DNS, validates the resolved IP against all private/reserved ranges, then connects directly to that resolved IP for the actual request. This eliminates DNS rebinding (TOCTOU) attacks where a second DNS lookup could return a different IP. TLS certificates still validate correctly via SNI (`servername`). |
+| **Redirect blocking** | The proxy does not follow HTTP redirects (native `http`/`https` modules don't follow redirects by default). This prevents attackers from using a public domain that 302-redirects to internal services (e.g., cloud metadata endpoints). |
+| **Header allowlist** | Only safe headers are forwarded: `Authorization`, `Content-Type`, `Accept`, `X-API-Key`, `X-Request-ID`. All other headers are silently dropped. Header values containing CRLF or null bytes are rejected to prevent header injection. |
 | **Shell-safe CURL export** | The "Copy CURL" feature escapes all user-controlled values (URL, bearer token, query body) to prevent shell injection when the command is pasted into a terminal. |
 | **Query size limit** | Queries exceeding 100KB are rejected with a `413` response. |
 | **Request timeout** | Upstream requests time out after 30 seconds. |
@@ -525,7 +525,7 @@ graphql-playground/
 │   │   ├── QueryEditor.vue       # CodeMirror 6 GraphQL editor with autocomplete
 │   │   ├── ResultsPanel.vue      # JSON results with copy and download buttons
 │   │   ├── BottomPanels.vue      # Variables + HTTP Headers panels
-│   │   ├── ToolbarActions.vue    # Prettify, History, Copy CURL buttons
+│   │   ├── ToolbarActions.vue    # History, Copy CURL buttons
 │   │   ├── HistoryModal.vue      # Query history browser
 │   │   ├── SettingsModal.vue     # App settings (font size, data management)
 │   │   ├── SchemaSidebar.vue     # Schema documentation slide-out panel
@@ -582,7 +582,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (122 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (138 tests) |
 | [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
 | [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |

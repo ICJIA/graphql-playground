@@ -62,4 +62,22 @@ describe('WelcomeGuide', () => {
     await manualButton!.trigger('click')
     expect(wrapper.emitted('manual')).toBeTruthy()
   })
+
+  it('uses full-page styling by default (no modal prop)', () => {
+    const wrapper = mount(WelcomeGuide, mountOptions)
+    const root = wrapper.find('div')
+    expect(root.classes()).toContain('h-full')
+    expect(root.classes()).toContain('bg-gray-900')
+  })
+
+  it('uses compact styling when modal prop is true', () => {
+    const wrapper = mount(WelcomeGuide, {
+      ...mountOptions,
+      props: { modal: true }
+    })
+    const root = wrapper.find('div')
+    expect(root.classes()).toContain('p-4')
+    expect(root.classes()).not.toContain('h-full')
+    expect(root.classes()).not.toContain('bg-gray-900')
+  })
 })

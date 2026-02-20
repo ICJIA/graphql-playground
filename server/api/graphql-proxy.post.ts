@@ -10,6 +10,9 @@
  */
 
 import { lookup } from 'node:dns/promises'
+import { request as httpsRequest } from 'node:https'
+import { request as httpRequest } from 'node:http'
+import { createGunzip, createInflate } from 'node:zlib'
 import { playgroundConfig } from '../../playground.config'
 
 const ALLOWED_ORIGINS: readonly string[] = playgroundConfig.proxy.allowedOrigins
@@ -19,33 +22,117 @@ const MAX_QUERY_LENGTH = playgroundConfig.proxy.maxQueryLength
 const REQUEST_TIMEOUT = playgroundConfig.proxy.requestTimeout
 
 /**
- * Checks whether a hostname resolves to a private, loopback, or reserved IP address (SSRF protection).
- * Blocks: 10.x, 172.16-31.x, 192.168.x, 127.x (loopback), 0.x, and IPv6-mapped IPv4 addresses.
- * @param hostname - The hostname string to evaluate.
- * @returns True if the hostname falls within a private/reserved IP range.
+ * Checks whether an IP address is private, loopback, or reserved (SSRF protection).
+ * Blocks IPv4: 10/8, 127/8, 172.16/12, 192.168/16, 169.254/16 (link-local/metadata), 0/8.
+ * Blocks IPv6: ::1 (loopback), :: (unspecified), fc00::/7 (unique local), fe80::/10 (link-local).
+ * Also handles IPv6-mapped IPv4 addresses (::ffff:x.x.x.x).
+ * @param ip - The IP address string to evaluate.
+ * @returns True if the address falls within a private/reserved range.
  */
-function isPrivateIP(hostname: string): boolean {
+function isPrivateIP(ip: string): boolean {
   // Strip IPv6-mapped IPv4 prefix (e.g., "::ffff:10.0.0.1" → "10.0.0.1")
-  let normalized = hostname
+  let normalized = ip
   if (normalized.startsWith('::ffff:')) {
     normalized = normalized.slice(7)
   }
 
-  // Block private/reserved IPv4 ranges
+  // Check IPv4 private/reserved ranges
   const parts = normalized.split('.').map(Number)
-  if (parts.length !== 4 || parts.some((n) => isNaN(n))) return false
-  const [a, b] = parts as [number, number, number, number]
-  // 10.x.x.x (Class A private)
-  if (a === 10) return true
-  // 127.x.x.x (loopback)
-  if (a === 127) return true
-  // 172.16.x.x - 172.31.x.x (Class B private)
-  if (a === 172 && b >= 16 && b <= 31) return true
-  // 192.168.x.x (Class C private)
-  if (a === 192 && b === 168) return true
-  // 0.x.x.x (reserved)
-  if (a === 0) return true
+  if (parts.length === 4 && parts.every((n) => !isNaN(n) && n >= 0 && n <= 255)) {
+    const [a, b] = parts
+    return (
+      a === 10 ||                          // 10.0.0.0/8 (Class A private)
+      a === 127 ||                         // 127.0.0.0/8 (loopback)
+      (a === 172 && b >= 16 && b <= 31) || // 172.16.0.0/12 (Class B private)
+      (a === 192 && b === 168) ||          // 192.168.0.0/16 (Class C private)
+      (a === 169 && b === 254) ||          // 169.254.0.0/16 (link-local / cloud metadata)
+      a === 0                              // 0.0.0.0/8 (reserved)
+    )
+  }
+
+  // Check IPv6 private/reserved ranges
+  const lower = normalized.toLowerCase()
+  if (lower === '::1' || lower === '::') return true // loopback / unspecified
+
+  // Parse the first hex group to check range prefixes
+  const firstGroup = lower.split(':')[0]
+  if (firstGroup) {
+    const word = parseInt(firstGroup, 16)
+    if (!isNaN(word)) {
+      if (word >= 0xfc00 && word <= 0xfdff) return true // fc00::/7 (unique local)
+      if (word >= 0xfe80 && word <= 0xfebf) return true // fe80::/10 (link-local)
+    }
+  }
+
   return false
+}
+
+/**
+ * Makes an HTTP(S) request using a pre-resolved IP address to prevent DNS rebinding.
+ * Connects directly to the resolved IP, using the original hostname for the Host header
+ * and TLS SNI (servername), so certificates validate correctly.
+ */
+function fetchWithPinnedIP(
+  url: URL,
+  resolvedIP: string,
+  options: { method: string; headers: Record<string, string>; body: string; timeout: number }
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const isHttps = url.protocol === 'https:'
+    const reqFn = isHttps ? httpsRequest : httpRequest
+
+    const req = reqFn(
+      {
+        hostname: resolvedIP,
+        port: Number(url.port) || (isHttps ? 443 : 80),
+        path: url.pathname + url.search,
+        method: options.method,
+        headers: {
+          ...options.headers,
+          Host: url.host,
+          'Content-Length': Buffer.byteLength(options.body).toString()
+        },
+        timeout: options.timeout,
+        ...(isHttps ? { servername: url.hostname } : {})
+      },
+      (res) => {
+        // Decompress if the upstream sends gzip or deflate
+        let stream: NodeJS.ReadableStream = res
+        const encoding = res.headers['content-encoding']
+        if (encoding === 'gzip') stream = res.pipe(createGunzip())
+        else if (encoding === 'deflate') stream = res.pipe(createInflate())
+
+        const chunks: Buffer[] = []
+        stream.on('data', (chunk: Buffer) => chunks.push(chunk))
+        stream.on('error', reject)
+        stream.on('end', () => {
+          const body = Buffer.concat(chunks).toString('utf-8')
+          try {
+            const data = JSON.parse(body)
+            // GraphQL servers often return errors with 4xx/5xx — pass the JSON through
+            resolve(data)
+          } catch {
+            if (res.statusCode && res.statusCode >= 400) {
+              reject(Object.assign(new Error('Upstream endpoint returned an error'), {
+                statusCode: res.statusCode
+              }))
+            } else {
+              reject(new Error(`Non-JSON response (HTTP ${res.statusCode})`))
+            }
+          }
+        })
+      }
+    )
+
+    req.on('error', reject)
+    req.on('timeout', () => {
+      req.destroy()
+      reject(new Error('Request timed out'))
+    })
+
+    req.write(options.body)
+    req.end()
+  })
 }
 
 /**
@@ -65,6 +152,8 @@ function sanitizeHeaders(customHeaders: Record<string, string> | undefined): Rec
 
   for (const [key, value] of Object.entries(customHeaders)) {
     if (typeof key === 'string' && typeof value === 'string' && ALLOWED_HEADERS.includes(key.toLowerCase())) {
+      // Reject values containing CRLF or null bytes (header injection prevention)
+      if (/[\r\n\0]/.test(value)) continue
       sanitized[key] = value
     }
   }
@@ -130,8 +219,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // DNS resolution check: resolve hostname and verify the IP is not private.
-  // Prevents bypasses via non-standard IP formats (hex, octal, decimal)
-  // and domains that resolve to internal addresses.
+  // The resolved IP is reused for the actual request (pinned DNS) to prevent
+  // DNS rebinding / TOCTOU attacks where a second lookup returns a different IP.
+  let resolvedIP: string
   try {
     const { address } = await lookup(parsedUrl.hostname)
     if (isPrivateIP(address)) {
@@ -140,6 +230,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Requests to private or internal addresses are not allowed'
       })
     }
+    resolvedIP = address
   } catch (error: any) {
     if (error?.statusCode === 403) throw error
     throw createError({
@@ -174,30 +265,18 @@ export default defineEventHandler(async (event) => {
   // --- Build safe headers ---
   const fetchHeaders = sanitizeHeaders(customHeaders)
 
-  // --- Forward request ---
+  // --- Forward request (using pinned IP to prevent DNS rebinding) ---
   try {
-    const response = await $fetch(endpoint, {
+    return await fetchWithPinnedIP(parsedUrl, resolvedIP, {
       method: 'POST',
       headers: fetchHeaders,
-      body: {
-        query,
-        variables: variables || undefined
-      },
-      timeout: REQUEST_TIMEOUT,
-      redirect: 'manual'
+      body: JSON.stringify({ query, variables: variables || undefined }),
+      timeout: REQUEST_TIMEOUT
     })
-
-    return response
   } catch (error: any) {
-    // Pass through GraphQL error responses (e.g., validation errors
-    // returned with non-2xx status codes)
-    if (error?.data) {
-      return error.data
-    }
-
     throw createError({
       statusCode: error?.statusCode || 502,
-      statusMessage: error?.message || 'Failed to reach the GraphQL endpoint'
+      statusMessage: 'Failed to reach the GraphQL endpoint'
     })
   }
 })

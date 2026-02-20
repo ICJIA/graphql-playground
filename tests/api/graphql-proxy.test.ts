@@ -9,25 +9,42 @@ import { playgroundConfig } from '../../playground.config'
  * Nitro server. The actual proxy uses these same constants.
  */
 
-// Replicate the isPrivateIP function from the proxy
-function isPrivateIP(hostname: string): boolean {
-  let normalized = hostname
+// Replicate the isPrivateIP function from the proxy (must stay in sync)
+function isPrivateIP(ip: string): boolean {
+  let normalized = ip
   if (normalized.startsWith('::ffff:')) {
     normalized = normalized.slice(7)
   }
 
   const parts = normalized.split('.').map(Number)
-  if (parts.length !== 4 || parts.some((n) => isNaN(n))) return false
-  const [a, b] = parts
-  if (a === 10) return true
-  if (a === 127) return true
-  if (a === 172 && b >= 16 && b <= 31) return true
-  if (a === 192 && b === 168) return true
-  if (a === 0) return true
+  if (parts.length === 4 && parts.every((n) => !isNaN(n) && n >= 0 && n <= 255)) {
+    const [a, b] = parts
+    return (
+      a === 10 ||
+      a === 127 ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 169 && b === 254) ||
+      a === 0
+    )
+  }
+
+  const lower = normalized.toLowerCase()
+  if (lower === '::1' || lower === '::') return true
+
+  const firstGroup = lower.split(':')[0]
+  if (firstGroup) {
+    const word = parseInt(firstGroup, 16)
+    if (!isNaN(word)) {
+      if (word >= 0xfc00 && word <= 0xfdff) return true
+      if (word >= 0xfe80 && word <= 0xfebf) return true
+    }
+  }
+
   return false
 }
 
-// Replicate the sanitizeHeaders function from the proxy
+// Replicate the sanitizeHeaders function from the proxy (must stay in sync)
 function sanitizeHeaders(
   customHeaders: Record<string, string> | undefined,
   allowedHeaders: readonly string[]
@@ -42,6 +59,7 @@ function sanitizeHeaders(
 
   for (const [key, value] of Object.entries(customHeaders)) {
     if (typeof key === 'string' && typeof value === 'string' && allowedHeaders.includes(key.toLowerCase())) {
+      if (/[\r\n\0]/.test(value)) continue
       sanitized[key] = value
     }
   }
@@ -49,7 +67,7 @@ function sanitizeHeaders(
   return sanitized
 }
 
-describe('Proxy security: SSRF protection', () => {
+describe('Proxy security: SSRF protection (IPv4)', () => {
   it('blocks 10.x.x.x private range', () => {
     expect(isPrivateIP('10.0.0.1')).toBe(true)
     expect(isPrivateIP('10.255.255.255')).toBe(true)
@@ -82,29 +100,75 @@ describe('Proxy security: SSRF protection', () => {
     expect(isPrivateIP('0.1.2.3')).toBe(true)
   })
 
-  it('blocks IPv6-mapped private addresses', () => {
-    expect(isPrivateIP('::ffff:10.0.0.1')).toBe(true)
-    expect(isPrivateIP('::ffff:127.0.0.1')).toBe(true)
-    expect(isPrivateIP('::ffff:192.168.1.1')).toBe(true)
-    expect(isPrivateIP('::ffff:172.16.0.1')).toBe(true)
+  it('blocks 169.254.x.x link-local range (cloud metadata)', () => {
+    expect(isPrivateIP('169.254.169.254')).toBe(true)
+    expect(isPrivateIP('169.254.0.1')).toBe(true)
+    expect(isPrivateIP('169.254.255.255')).toBe(true)
   })
 
-  it('allows IPv6-mapped public addresses', () => {
-    expect(isPrivateIP('::ffff:8.8.8.8')).toBe(false)
-    expect(isPrivateIP('::ffff:1.1.1.1')).toBe(false)
+  it('allows 169.253.x.x and 169.255.x.x (not link-local)', () => {
+    expect(isPrivateIP('169.253.0.1')).toBe(false)
+    expect(isPrivateIP('169.255.0.1')).toBe(false)
   })
 
   it('allows public IPs', () => {
     expect(isPrivateIP('8.8.8.8')).toBe(false)
     expect(isPrivateIP('1.1.1.1')).toBe(false)
     expect(isPrivateIP('203.0.113.1')).toBe(false)
+    expect(isPrivateIP('104.21.32.1')).toBe(false)
   })
 
   it('returns false for non-IP hostnames', () => {
     expect(isPrivateIP('example.com')).toBe(false)
     expect(isPrivateIP('api.stripe.com')).toBe(false)
   })
+})
 
+describe('Proxy security: SSRF protection (IPv6)', () => {
+  it('blocks IPv6 loopback (::1)', () => {
+    expect(isPrivateIP('::1')).toBe(true)
+  })
+
+  it('blocks IPv6 unspecified (::)', () => {
+    expect(isPrivateIP('::')).toBe(true)
+  })
+
+  it('blocks IPv6 unique local addresses (fc00::/7)', () => {
+    expect(isPrivateIP('fc00::1')).toBe(true)
+    expect(isPrivateIP('fd00::1')).toBe(true)
+    expect(isPrivateIP('fd12:3456:789a::1')).toBe(true)
+    expect(isPrivateIP('fdff::1')).toBe(true)
+  })
+
+  it('blocks IPv6 link-local addresses (fe80::/10)', () => {
+    expect(isPrivateIP('fe80::1')).toBe(true)
+    expect(isPrivateIP('fe80::1%eth0')).toBe(true)
+    expect(isPrivateIP('feb0::1')).toBe(true)
+    expect(isPrivateIP('febf::1')).toBe(true)
+  })
+
+  it('allows public IPv6 addresses', () => {
+    expect(isPrivateIP('2001:4860:4860::8888')).toBe(false) // Google DNS
+    expect(isPrivateIP('2606:4700::1111')).toBe(false) // Cloudflare DNS
+  })
+})
+
+describe('Proxy security: SSRF protection (IPv6-mapped IPv4)', () => {
+  it('blocks IPv6-mapped private IPv4 addresses', () => {
+    expect(isPrivateIP('::ffff:10.0.0.1')).toBe(true)
+    expect(isPrivateIP('::ffff:127.0.0.1')).toBe(true)
+    expect(isPrivateIP('::ffff:192.168.1.1')).toBe(true)
+    expect(isPrivateIP('::ffff:172.16.0.1')).toBe(true)
+    expect(isPrivateIP('::ffff:169.254.169.254')).toBe(true)
+  })
+
+  it('allows IPv6-mapped public addresses', () => {
+    expect(isPrivateIP('::ffff:8.8.8.8')).toBe(false)
+    expect(isPrivateIP('::ffff:1.1.1.1')).toBe(false)
+  })
+})
+
+describe('Proxy security: Blocked hostnames', () => {
   it('blocked hostnames list includes critical entries', () => {
     const blocked = playgroundConfig.proxy.blockedHostnames
     expect(blocked).toContain('localhost')
@@ -157,6 +221,36 @@ describe('Proxy security: Header sanitization', () => {
   it('is case-insensitive for header matching', () => {
     const result = sanitizeHeaders({ authorization: 'Bearer test' }, allowedHeaders)
     expect(result['authorization']).toBe('Bearer test')
+  })
+
+  it('rejects header values containing carriage return (CRLF injection)', () => {
+    const result = sanitizeHeaders(
+      { Authorization: 'Bearer token\r\nX-Injected: malicious' },
+      allowedHeaders
+    )
+    expect(result['Authorization']).toBeUndefined()
+  })
+
+  it('rejects header values containing newline', () => {
+    const result = sanitizeHeaders({ Authorization: 'Bearer token\nevil-header: value' }, allowedHeaders)
+    expect(result['Authorization']).toBeUndefined()
+  })
+
+  it('rejects header values containing null bytes', () => {
+    const result = sanitizeHeaders({ Authorization: 'Bearer token\0injected' }, allowedHeaders)
+    expect(result['Authorization']).toBeUndefined()
+  })
+
+  it('allows clean header values alongside rejected CRLF values', () => {
+    const result = sanitizeHeaders(
+      {
+        Authorization: 'Bearer clean-token',
+        'X-API-Key': 'key\r\ninjection'
+      },
+      allowedHeaders
+    )
+    expect(result['Authorization']).toBe('Bearer clean-token')
+    expect(result['X-API-Key']).toBeUndefined()
   })
 })
 
@@ -268,12 +362,24 @@ describe('Proxy security: Bearer token handling', () => {
 })
 
 describe('Proxy security: DNS resolution SSRF defense', () => {
-  it('isPrivateIP catches resolved private IPs from DNS', () => {
-    // After DNS resolution, these resolved IPs should be blocked
+  it('isPrivateIP catches resolved private IPv4 from DNS', () => {
     expect(isPrivateIP('127.0.0.1')).toBe(true)
     expect(isPrivateIP('10.0.0.1')).toBe(true)
     expect(isPrivateIP('192.168.1.1')).toBe(true)
     expect(isPrivateIP('172.16.0.1')).toBe(true)
+  })
+
+  it('isPrivateIP catches resolved link-local from DNS (cloud metadata)', () => {
+    expect(isPrivateIP('169.254.169.254')).toBe(true)
+  })
+
+  it('isPrivateIP catches resolved IPv6 loopback from DNS', () => {
+    expect(isPrivateIP('::1')).toBe(true)
+  })
+
+  it('isPrivateIP catches resolved IPv6 private from DNS', () => {
+    expect(isPrivateIP('fd00::1')).toBe(true)
+    expect(isPrivateIP('fe80::1')).toBe(true)
   })
 
   it('isPrivateIP allows resolved public IPs', () => {
