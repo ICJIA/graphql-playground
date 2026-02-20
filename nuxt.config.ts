@@ -9,6 +9,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: { lang: 'en' },
       title: playgroundConfig.app.name,
       meta: [{ name: 'description', content: playgroundConfig.app.description }]
     }

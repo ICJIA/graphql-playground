@@ -2,15 +2,18 @@
 <template>
   <div class="border-t border-gray-800">
     <!-- Panel tabs -->
-    <div class="flex items-center">
+    <div class="flex items-center" role="tablist">
       <button
         v-for="panel in panels"
         :key="panel.key"
+        role="tab"
+        :aria-selected="activePanel === panel.key && isOpen"
+        :aria-expanded="activePanel === panel.key && isOpen"
         class="px-3 py-1 text-xs uppercase tracking-wider"
         :class="
           activePanel === panel.key && isOpen
             ? 'text-white border-b-2 border-primary-500'
-            : 'text-gray-500 hover:text-gray-300'
+            : 'text-gray-400 hover:text-gray-300'
         "
         @click="togglePanel(panel.key)"
       >
@@ -19,7 +22,7 @@
     </div>
 
     <!-- Panel content (collapsible) -->
-    <div v-if="isOpen" class="h-32 overflow-auto">
+    <div v-if="isOpen" role="tabpanel" class="h-32 overflow-auto">
       <!-- Variables -->
       <div v-if="activePanel === 'variables'" class="h-full">
         <textarea
@@ -33,8 +36,9 @@
       <!-- HTTP Headers / Bearer Token -->
       <div v-if="activePanel === 'headers'" class="p-2 space-y-2">
         <div class="flex items-center gap-2">
-          <label class="text-xs text-gray-400 shrink-0 w-24">Bearer Token</label>
+          <label for="bearer-token-input" class="text-xs text-gray-400 shrink-0 w-24">Bearer Token</label>
           <UInput
+            id="bearer-token-input"
             :model-value="endpointsStore.activeEndpointData?.bearerToken || ''"
             type="password"
             placeholder="Enter bearer token..."

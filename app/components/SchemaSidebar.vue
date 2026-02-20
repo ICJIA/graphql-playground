@@ -5,6 +5,7 @@
     <button
       class="px-1 py-3 bg-gray-800 text-gray-400 hover:text-white text-xs tracking-widest border border-gray-700 rounded-l"
       style="writing-mode: vertical-lr"
+      aria-label="DOCS — schema documentation"
       @click="openPanel('docs')"
     >
       DOCS
@@ -12,6 +13,7 @@
     <button
       class="px-1 py-3 bg-gray-800 text-gray-400 hover:text-white text-xs tracking-widest border border-gray-700 border-t-0 rounded-l"
       style="writing-mode: vertical-lr"
+      aria-label="SCHEMA SDL view"
       @click="openPanel('schema')"
     >
       SCHEMA
@@ -43,7 +45,7 @@
     </template>
 
     <template #body>
-      <div v-if="schemaState.isLoading.value" class="flex items-center justify-center p-8">
+      <div v-if="schemaState.isLoading.value" class="flex items-center justify-center p-8" role="status" aria-label="Loading schema">
         <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
       </div>
 
@@ -77,6 +79,7 @@
             color="neutral"
             size="sm"
             title="Download docs as JSON (for LLMs)"
+            aria-label="Download docs as JSON"
             @click="downloadDocsJson"
           />
         </div>
@@ -103,6 +106,7 @@
         <div>
           <button
             class="flex items-center gap-1 text-sm font-semibold text-gray-300 w-full py-1"
+            :aria-expanded="typesExpanded"
             @click="typesExpanded = !typesExpanded"
           >
             <UIcon :name="typesExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />

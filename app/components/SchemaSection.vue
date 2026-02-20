@@ -3,6 +3,7 @@
   <div>
     <button
       class="flex items-center gap-1 text-sm font-semibold text-gray-300 w-full py-1"
+      :aria-expanded="expanded"
       @click="expanded = !expanded"
     >
       <UIcon :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />
@@ -11,16 +12,16 @@
     <div v-if="expanded" class="ml-4 space-y-1">
       <div v-for="field in filteredFields" :key="field.name" class="text-sm">
         <span class="text-blue-400">{{ field.name }}</span>
-        <span class="text-gray-500">(</span>
+        <span class="text-gray-400">(</span>
         <span v-for="(arg, i) in field.args" :key="arg.name">
           <span class="text-yellow-300">{{ arg.name }}</span>
-          <span class="text-gray-500">:</span>
+          <span class="text-gray-400">:</span>
           <button class="text-green-400 hover:underline" @click="$emit('navigate', getNamedTypeName(arg.type))">
             {{ arg.type.toString() }}
           </button>
-          <span v-if="i < field.args.length - 1" class="text-gray-500">,</span>
+          <span v-if="i < field.args.length - 1" class="text-gray-400">,</span>
         </span>
-        <span class="text-gray-500">):</span>
+        <span class="text-gray-400">):</span>
         <button class="text-green-400 hover:underline" @click="$emit('navigate', getNamedTypeName(field.type))">
           {{ field.type.toString() }}
         </button>

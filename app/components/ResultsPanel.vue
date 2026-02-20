@@ -24,8 +24,8 @@
     </div>
 
     <!-- Results content -->
-    <div class="flex-1 overflow-auto p-4 font-mono text-sm">
-      <div v-if="!activeTab?.results" class="h-full flex items-center justify-center text-gray-500">
+    <div class="flex-1 overflow-auto p-4 font-mono text-sm" tabindex="0" aria-live="polite" aria-label="Query results">
+      <div v-if="!activeTab?.results" class="h-full flex items-center justify-center text-gray-400">
         <div class="text-center">
           <UIcon name="i-lucide-play" class="text-4xl mb-2" />
           <p>Hit the Play Button to</p>

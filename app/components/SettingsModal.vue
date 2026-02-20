@@ -96,7 +96,7 @@
         </div>
 
         <!-- App Info -->
-        <div class="text-xs text-gray-600 space-y-2">
+        <div class="text-xs text-gray-400 space-y-2">
           <p>{{ config.app.name }} v{{ config.app.version }}</p>
           <div class="flex items-center gap-3">
             <a

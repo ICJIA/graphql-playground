@@ -14,7 +14,7 @@
         />
       </div>
 
-      <div v-if="entries.length === 0" class="text-gray-500 text-center py-4">
+      <div v-if="entries.length === 0" class="text-gray-400 text-center py-4">
         No history yet. Execute a query to see it here.
       </div>
       <div v-else class="space-y-2 max-h-96 overflow-auto">
@@ -25,7 +25,7 @@
           @click="selectAndClose(entry)"
         >
           <pre class="text-xs text-gray-300 truncate font-mono">{{ entry.query.slice(0, 120) }}</pre>
-          <span class="text-xs text-gray-500">{{ new Date(entry.timestamp).toLocaleString() }}</span>
+          <span class="text-xs text-gray-400">{{ new Date(entry.timestamp).toLocaleString() }}</span>
         </button>
       </div>
     </template>

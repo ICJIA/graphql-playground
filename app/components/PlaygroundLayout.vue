@@ -2,15 +2,16 @@
 <template>
   <div class="h-screen flex flex-col bg-gray-950 text-white">
     <!-- Top bar: Endpoint selector -->
-    <div class="flex items-center gap-2 px-4 py-2 border-b border-gray-800">
+    <header class="flex items-center gap-2 px-4 py-2 border-b border-gray-800">
+      <h1 class="sr-only">{{ config.app.name }}</h1>
       <div class="flex-1">
         <EndpointSelector ref="endpointSelector" />
       </div>
-      <UButton icon="i-lucide-settings" variant="ghost" color="neutral" @click="settingsOpen = true" />
-    </div>
+      <UButton icon="i-lucide-settings" variant="ghost" color="neutral" aria-label="Settings" @click="settingsOpen = true" />
+    </header>
 
     <!-- Connected: show playground -->
-    <template v-if="endpointsStore.activeEndpoint">
+    <main v-if="endpointsStore.activeEndpoint" class="flex-1 flex flex-col overflow-hidden">
       <!-- Tab bar + toolbar -->
       <div class="flex items-center justify-between px-4 py-1 border-b border-gray-800">
         <div class="flex-1">
@@ -48,6 +49,7 @@
             variant="solid"
             size="xl"
             class="rounded-full shadow-lg"
+            aria-label="Execute query"
             :loading="isExecuting"
             @click="executeQuery"
           />
@@ -66,23 +68,23 @@
           :href="config.app.repository"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 cursor-pointer"
+          class="text-xs text-gray-400 hover:text-gray-300 transition-colors flex items-center gap-1 cursor-pointer"
         >
           <UIcon name="i-lucide-github" class="text-sm" />
           GitHub
         </a>
       </div>
-    </template>
+    </main>
 
     <!-- Not connected: show welcome guide -->
-    <template v-else>
-      <div class="flex-1 overflow-hidden">
-        <WelcomeGuide @connect="onQuickConnect" @manual="onManualConnect" />
-      </div>
-    </template>
+    <main v-else class="flex-1 overflow-hidden">
+      <WelcomeGuide @connect="onQuickConnect" @manual="onManualConnect" />
+    </main>
 
     <!-- Schema sidebar toggle -->
-    <SchemaSidebar />
+    <aside aria-label="Schema documentation">
+      <SchemaSidebar />
+    </aside>
 
     <!-- Settings modal -->
     <SettingsModal v-model:open="settingsOpen" />

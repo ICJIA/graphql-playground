@@ -9,7 +9,7 @@
       </div>
 
       <div class="text-left space-y-3">
-        <h3 class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Quick Start</h3>
+        <h3 class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Quick Start</h3>
         <ol class="space-y-2 text-sm text-gray-300">
           <li class="flex gap-2">
             <span class="text-primary-400 font-bold shrink-0">1.</span>
@@ -31,15 +31,15 @@
       </div>
 
       <div class="text-left space-y-2">
-        <h3 class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Try an Example</h3>
-        <p class="text-xs text-gray-500">Click to connect and load a sample query you can run immediately.</p>
+        <h3 class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Try an Example</h3>
+        <p class="text-xs text-gray-400">Click to connect and load a sample query you can run immediately.</p>
         <div v-for="ep in config.exampleEndpoints" :key="ep.url" class="group">
           <button
             class="w-full text-left p-2 rounded bg-gray-800/50 hover:bg-gray-800 transition-colors"
             @click="$emit('connect', ep.url, ep.exampleQuery)"
           >
             <p class="text-sm text-primary-400 font-mono truncate">{{ ep.url }}</p>
-            <p class="text-xs text-gray-500 mt-0.5">{{ ep.description }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ ep.description }}</p>
           </button>
         </div>
       </div>
@@ -50,22 +50,22 @@
           @click="$emit('manual')"
         >
           <p class="text-sm text-gray-300">I'll supply my own endpoint</p>
-          <p class="text-xs text-gray-500 mt-0.5">Enter a custom GraphQL endpoint URL</p>
+          <p class="text-xs text-gray-400 mt-0.5">Enter a custom GraphQL endpoint URL</p>
         </button>
       </div>
 
       <div class="text-left space-y-2">
-        <h3 class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Keyboard Shortcuts</h3>
-        <div class="grid grid-cols-2 gap-1 text-xs text-gray-400">
-          <div>
+        <h3 class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Keyboard Shortcuts</h3>
+        <dl class="grid grid-cols-2 gap-1 text-xs text-gray-400">
+          <dt>
             <kbd class="px-1 py-0.5 bg-gray-800 rounded font-mono">Ctrl+Enter</kbd>
-          </div>
-          <div>Execute query</div>
-          <div>
+          </dt>
+          <dd>Execute query</dd>
+          <dt>
             <kbd class="px-1 py-0.5 bg-gray-800 rounded font-mono">Ctrl+Space</kbd>
-          </div>
-          <div>Autocomplete</div>
-        </div>
+          </dt>
+          <dd>Autocomplete</dd>
+        </dl>
       </div>
     </div>
   </div>

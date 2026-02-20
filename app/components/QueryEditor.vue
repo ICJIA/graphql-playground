@@ -1,6 +1,6 @@
 <!-- app/components/QueryEditor.vue -->
 <template>
-  <div ref="editorContainer" class="h-full w-full overflow-hidden bg-gray-900" />
+  <div ref="editorContainer" class="h-full w-full overflow-hidden bg-gray-900" aria-label="GraphQL query editor" />
 </template>
 
 <script setup lang="ts">
@@ -79,9 +79,11 @@ function createEditor(doc: string) {
         executeKeymap,
         updateListener,
         fontSizeCompartment.of(fontSizeTheme(settingsStore.editorFontSize)),
+        EditorView.contentAttributes.of({ 'aria-label': 'GraphQL query editor' }),
         EditorView.theme({
           '&': { height: '100%', backgroundColor: '#111827' },
           '.cm-scroller': { overflow: 'auto' },
+          '.cm-content': { backgroundColor: '#111827' },
           '.cm-gutters': { backgroundColor: '#111827', borderRight: '1px solid #1f2937' },
           '.cm-completionDetail': { display: 'none' }
         })
