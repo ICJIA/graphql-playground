@@ -64,6 +64,7 @@
         <a
           :href="config.app.repository"
           target="_blank"
+          rel="noopener noreferrer"
           class="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 cursor-pointer"
         >
           <UIcon name="i-lucide-github" class="text-sm" />

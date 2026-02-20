@@ -102,6 +102,7 @@
             <a
               :href="config.app.repository"
               target="_blank"
+              rel="noopener noreferrer"
               class="inline-flex items-center gap-1 text-primary-500 hover:underline"
             >
               <UIcon name="i-lucide-github" class="text-sm" />
@@ -110,6 +111,7 @@
             <a
               :href="config.app.liveUrl"
               target="_blank"
+              rel="noopener noreferrer"
               class="inline-flex items-center gap-1 text-primary-500 hover:underline"
             >
               <UIcon name="i-lucide-external-link" class="text-sm" />
@@ -146,6 +148,7 @@ function adjustFontSize(delta: number) {
 
 /**
  * Exports all localStorage data as a JSON file for backup or transfer.
+ * Bearer tokens are automatically stripped to prevent accidental credential leakage.
  */
 function exportData() {
   const data: Record<string, any> = {
@@ -154,7 +157,22 @@ function exportData() {
   }
 
   for (const [name, key] of Object.entries(config.storageKeys)) {
-    data[name] = localStorage.getItem(key)
+    let value = localStorage.getItem(key)
+
+    // Strip bearer tokens from endpoints to prevent credential leakage
+    if (name === 'endpoints' && value) {
+      try {
+        const endpoints = JSON.parse(value)
+        if (Array.isArray(endpoints)) {
+          const stripped = endpoints.map((ep: any) => ({ ...ep, bearerToken: '' }))
+          value = JSON.stringify(stripped)
+        }
+      } catch {
+        /* keep original value if parse fails */
+      }
+    }
+
+    data[name] = value
   }
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -165,7 +183,7 @@ function exportData() {
   a.click()
   URL.revokeObjectURL(url)
 
-  toast.add({ title: 'Data exported', color: 'success' })
+  toast.add({ title: 'Data exported (bearer tokens excluded)', color: 'success' })
 }
 
 /**

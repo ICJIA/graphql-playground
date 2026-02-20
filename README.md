@@ -462,6 +462,8 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 | **Query size limit** | Queries exceeding 100KB are rejected with a `413` response. |
 | **Request timeout** | Upstream requests time out after 30 seconds. |
 | **POST only** | The proxy only accepts POST requests (enforced by Nitro's `.post.ts` file naming). |
+| **Security headers** | All responses include `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, HSTS, CSP, `Referrer-Policy`, and `Permissions-Policy`. See [HTTP security headers](#http-security-headers) below. |
+| **Token export stripping** | The Settings > Export Data function automatically removes all bearer tokens from the exported JSON to prevent accidental credential leakage. |
 
 All security constants are defined in `playground.config.ts` (project root) and imported by the proxy at build time.
 
@@ -502,9 +504,25 @@ if (!ALLOWED_DOMAINS.includes(parsedUrl.hostname)) {
 }
 ```
 
+### HTTP security headers
+
+The `netlify.toml` configures the following security headers on all responses:
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `X-Frame-Options` | `DENY` | Prevents clickjacking by blocking all iframe embedding |
+| `X-Content-Type-Options` | `nosniff` | Prevents MIME-type sniffing attacks |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Forces HTTPS for one year, including subdomains |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limits referrer leakage to origin-only for cross-origin requests |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disables unused browser APIs |
+| `Content-Security-Policy` | See `netlify.toml` | Restricts script/style sources to self + inline, limits connect to self + HTTPS, blocks frame ancestors |
+
+All `target="_blank"` links include `rel="noopener noreferrer"` to prevent reverse tabnapping.
+
 ### Client-side security
 
 - **Bearer tokens are stored in `localStorage`** — this is acceptable for a developer tool but means any JavaScript on the page can read them. Do not use this tool on shared or untrusted machines with production API tokens. See [How the bearer token is transmitted](#how-the-bearer-token-is-transmitted) above for the full security analysis.
+- **Bearer tokens are stripped from exports** — when you export your data via Settings > Export Data, all bearer tokens are automatically removed from the exported JSON file to prevent accidental credential leakage.
 - **No server-side storage** — the Netlify function is stateless. Nothing is logged or persisted on the server. Tokens exist in function memory only for the duration of a request.
 
 ---
@@ -557,7 +575,8 @@ graphql-playground/
 ├── nuxt.config.ts                # Nuxt configuration (SPA mode, dark theme, Netlify preset)
 ├── eslint.config.mjs             # ESLint flat config with @nuxt/eslint + Prettier
 ├── .prettierrc                   # Prettier formatting rules (no semis, single quotes)
-├── netlify.toml                  # Netlify build and deploy configuration
+├── app.config.ts                 # Nuxt UI component defaults (toast duration, progress bar)
+├── netlify.toml                  # Netlify build and deploy configuration + security headers
 ├── vitest.config.ts              # Vitest configuration
 ├── tsconfig.json                 # TypeScript configuration
 ├── package.json                  # Dependencies and scripts
