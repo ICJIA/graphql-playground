@@ -28,7 +28,7 @@ export function useGraphQL() {
       try {
         variables = JSON.parse(tab.variables)
       } catch {
-        toast.add({ title: 'Invalid JSON in variables panel', color: 'error' })
+        toast.add({ title: 'Invalid JSON in variables panel', icon: 'i-lucide-x-circle', color: 'error' })
         isExecuting.value = false
         return
       }
@@ -66,7 +66,7 @@ export function useGraphQL() {
       workspaceStore.updateTab(endpoint.url, tab.id, {
         results: JSON.stringify(errorResult, null, 2)
       })
-      toast.add({ title: 'Query failed', description: errorResult.error, color: 'error' })
+      toast.add({ title: 'Query failed', description: errorResult.error, icon: 'i-lucide-x-circle', color: 'error' })
     } finally {
       isExecuting.value = false
     }

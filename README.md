@@ -6,6 +6,18 @@ A modern, configurable GraphQL playground built with Nuxt 4, Nuxt UI 4, and Code
 
 ---
 
+## Why this project exists
+
+The classic [Prisma GraphQL Playground](https://github.com/graphql/graphql-playground) was deprecated in 2020, and its successor [GraphiQL](https://github.com/graphql/graphiql) — while actively maintained — ships as an embeddable widget tied to a single endpoint. Neither offers multi-endpoint management, persistent workspaces, bearer token handling, or a built-in CORS proxy. The tooling hasn't kept pace with the frameworks developers use today.
+
+This project has two goals:
+
+1. **Modernize the GraphQL playground concept.** Replace aging tools with a playground built on a current tech stack — Nuxt 4, Vue 3, Tailwind CSS v4, CodeMirror 6 — with features like schema-aware autocomplete, multi-format export, and full `localStorage` persistence. The result is a standalone, self-hosted tool that works with any public GraphQL API out of the box.
+
+2. **Provide a foundation for ICJIA-specific expansion.** The [Illinois Criminal Justice Information Authority (ICJIA)](https://icjia.illinois.gov) maintains several Strapi-backed GraphQL APIs. This playground is designed to be extended with ICJIA-specific features — custom query templates, preconfigured endpoints, domain-specific documentation — while remaining general-purpose enough to use with any GraphQL endpoint.
+
+---
+
 ## What is GraphQL?
 
 [GraphQL](https://graphql.org/) is a query language for APIs developed by Facebook (now Meta) in 2012 and open-sourced in 2015. Unlike REST, where the server decides what data to return for each endpoint, GraphQL lets the **client specify exactly which fields it needs** in a single request.
@@ -46,9 +58,7 @@ The server returns exactly that shape — nothing more, nothing less.
 
 ## What is this?
 
-Most GraphQL APIs include a built-in playground (the classic [Prisma GraphQL Playground](https://github.com/graphql/graphql-playground) or [GraphiQL](https://github.com/graphql/graphiql)). These are useful but aging — Prisma's playground was deprecated in 2020, and the built-in tools are locked to a single endpoint with limited customization.
-
-This project is a standalone replacement that you host yourself. Point it at **any public GraphQL endpoint**, run queries, browse the schema, and save your work — all from a modern, dark-themed interface. For authenticated APIs, add a bearer token per endpoint and the playground sends it with every request.
+A standalone, self-hosted GraphQL playground. Point it at **any public GraphQL endpoint**, run queries, browse the schema, and save your work — all from a modern, dark-themed interface. For authenticated APIs, add a bearer token per endpoint and the playground sends it with every request.
 
 ### Why use this instead of the default playground?
 
@@ -575,7 +585,6 @@ graphql-playground/
 ├── nuxt.config.ts                # Nuxt configuration (SPA mode, dark theme, Netlify preset)
 ├── eslint.config.mjs             # ESLint flat config with @nuxt/eslint + Prettier
 ├── .prettierrc                   # Prettier formatting rules (no semis, single quotes)
-├── app.config.ts                 # Nuxt UI component defaults (toast duration, progress bar)
 ├── netlify.toml                  # Netlify build and deploy configuration + security headers
 ├── vitest.config.ts              # Vitest configuration
 ├── tsconfig.json                 # TypeScript configuration

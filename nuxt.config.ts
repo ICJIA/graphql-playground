@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     preset: 'netlify'
   },
 
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   compatibilityDate: '2026-02-19'
 })

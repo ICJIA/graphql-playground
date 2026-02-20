@@ -24,7 +24,8 @@
         <Splitpanes class="default-theme h-full">
           <Pane :size="50" :min-size="25">
             <div class="h-full flex flex-col bg-gray-900 relative">
-              <div class="absolute top-1 right-2 z-10">
+              <div class="absolute top-1 right-2 z-10 flex gap-1">
+                <UButton label="CLEAR" variant="ghost" color="neutral" size="xs" class="cursor-pointer" @click="clearQuery" />
                 <UButton label="PRETTIFY" variant="ghost" color="neutral" size="xs" class="cursor-pointer" @click="prettify" />
               </div>
               <div class="flex-1 overflow-hidden">
@@ -56,7 +57,7 @@
       <div class="px-4 py-1 border-t border-gray-800 flex items-center justify-between">
         <button
           class="text-xs text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1 px-2 py-0.5 rounded bg-gray-800/60 hover:bg-gray-700/60 cursor-pointer"
-          @click="quickstartOpen = true"
+          @click="showQuickstart"
         >
           <UIcon name="i-lucide-rocket" class="text-xs" />
           Quickstart
@@ -86,12 +87,6 @@
     <!-- Settings modal -->
     <SettingsModal v-model:open="settingsOpen" />
 
-    <!-- Quickstart modal -->
-    <UModal v-model:open="quickstartOpen" title="Quickstart" :ui="{ width: 'max-w-lg' }">
-      <template #body>
-        <WelcomeGuide modal @connect="onQuickstartConnect" @manual="onQuickstartManual" />
-      </template>
-    </UModal>
   </div>
 </template>
 
@@ -107,7 +102,6 @@ const { isExecuting, executeQuery } = useGraphQL()
 const toast = useToast()
 
 const settingsOpen = ref(false)
-const quickstartOpen = ref(false)
 const endpointSelector = ref()
 
 // Provide schema state so QueryEditor and SchemaSidebar share one instance
@@ -129,9 +123,16 @@ async function onQuickConnect(url: string, exampleQuery?: string) {
   if (exampleQuery) {
     const tab = workspaceStore.activeTab
     if (tab) {
-      workspaceStore.updateTab(url, tab.id, { query: exampleQuery })
+      workspaceStore.updateTab(url, tab.id, { query: exampleQuery, results: '' })
     }
   }
+}
+
+/** Clears the active tab's query and results. */
+function clearQuery() {
+  const tab = workspaceStore.activeTab
+  if (!tab) return
+  workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, { query: '', results: '' })
 }
 
 /** Parses and re-prints the active tab's GraphQL query for consistent formatting. */
@@ -142,19 +143,13 @@ function prettify() {
     const formatted = print(parse(tab.query))
     workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, { query: formatted })
   } catch {
-    toast.add({ title: 'Could not prettify — check query syntax', color: 'error' })
+    toast.add({ title: 'Could not prettify — check query syntax', icon: 'i-lucide-x-circle', color: 'error' })
   }
 }
 
-/** Handles connect from the quickstart modal. */
-async function onQuickstartConnect(url: string, exampleQuery?: string) {
-  quickstartOpen.value = false
-  await onQuickConnect(url, exampleQuery)
-}
-
-/** Handles manual entry from the quickstart modal. */
-function onQuickstartManual() {
-  quickstartOpen.value = false
-  onManualConnect()
+/** Deactivates the current endpoint to show the full-page welcome guide. All saved data is preserved in localStorage. */
+function showQuickstart() {
+  endpointsStore.activeEndpoint = ''
+  endpointsStore.persist()
 }
 </script>

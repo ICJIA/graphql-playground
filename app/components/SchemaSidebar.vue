@@ -210,7 +210,7 @@ function downloadSdl() {
   if (!schemaState.sdl.value) return
   const slug = getEndpointSlug()
   downloadFile(schemaState.sdl.value, `${slug}-schema.graphql`, 'text/plain')
-  toast.add({ title: 'Schema SDL downloaded', color: 'success' })
+  toast.add({ title: 'Schema SDL downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -299,7 +299,7 @@ function downloadDocsJson() {
   const slug = getEndpointSlug()
   const json = JSON.stringify(docs, null, 2)
   downloadFile(json, `${slug}-docs.json`, 'application/json')
-  toast.add({ title: 'Schema docs JSON downloaded', color: 'success' })
+  toast.add({ title: 'Schema docs JSON downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**

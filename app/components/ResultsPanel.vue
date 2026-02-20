@@ -287,7 +287,7 @@ function toTypeScript(data: any): string {
 function copyResults() {
   if (!activeTab.value?.results) return
   navigator.clipboard.writeText(activeTab.value.results)
-  toast.add({ title: 'JSON copied to clipboard', color: 'success' })
+  toast.add({ title: 'JSON copied to clipboard', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -296,7 +296,7 @@ function copyResults() {
 function downloadJson() {
   if (!activeTab.value?.results) return
   downloadFile(activeTab.value.results, `${getTabSlug()}-${getTimestamp()}.json`, 'application/json')
-  toast.add({ title: 'JSON downloaded', color: 'success' })
+  toast.add({ title: 'JSON downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -307,11 +307,11 @@ function downloadCsv() {
   if (!data) return
   const csv = toCsv(data)
   if (!csv) {
-    toast.add({ title: 'No tabular data found to export', color: 'warning' })
+    toast.add({ title: 'No tabular data found to export', icon: 'i-lucide-alert-triangle', color: 'warning' })
     return
   }
   downloadFile(csv, `${getTabSlug()}-${getTimestamp()}.csv`, 'text/csv')
-  toast.add({ title: 'CSV downloaded', color: 'success' })
+  toast.add({ title: 'CSV downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -322,7 +322,7 @@ function downloadMarkdown() {
   if (!data) return
   const md = toMarkdownTable(data)
   downloadFile(md, `${getTabSlug()}-${getTimestamp()}.md`, 'text/markdown')
-  toast.add({ title: 'Markdown downloaded', color: 'success' })
+  toast.add({ title: 'Markdown downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -333,7 +333,7 @@ function downloadYaml() {
   if (!data) return
   const yaml = toYaml(data)
   downloadFile(yaml, `${getTabSlug()}-${getTimestamp()}.yaml`, 'text/yaml')
-  toast.add({ title: 'YAML downloaded', color: 'success' })
+  toast.add({ title: 'YAML downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -344,7 +344,7 @@ function downloadTypeScript() {
   if (!data) return
   const ts = toTypeScript(data)
   downloadFile(ts, `${getTabSlug()}-${getTimestamp()}.ts`, 'text/typescript')
-  toast.add({ title: 'TypeScript downloaded', color: 'success' })
+  toast.add({ title: 'TypeScript downloaded', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 const exportItems = [

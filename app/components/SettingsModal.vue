@@ -183,7 +183,7 @@ function exportData() {
   a.click()
   URL.revokeObjectURL(url)
 
-  toast.add({ title: 'Data exported (bearer tokens excluded)', color: 'success' })
+  toast.add({ title: 'Data exported (bearer tokens excluded)', icon: 'i-lucide-check-circle', color: 'success' })
 }
 
 /**
@@ -212,10 +212,10 @@ function importData(event: Event) {
         }
       }
 
-      toast.add({ title: 'Data imported — reloading', color: 'success' })
+      toast.add({ title: 'Data imported — reloading', icon: 'i-lucide-check-circle', color: 'success' })
       setTimeout(() => window.location.reload(), 500)
     } catch {
-      toast.add({ title: 'Invalid export file', color: 'error' })
+      toast.add({ title: 'Invalid export file', icon: 'i-lucide-x-circle', color: 'error' })
     }
   }
   reader.readAsText(file)
@@ -239,7 +239,7 @@ function executeClear() {
     localStorage.removeItem(key)
   }
 
-  toast.add({ title: 'All data cleared — reloading', color: 'success' })
+  toast.add({ title: 'All data cleared — reloading', icon: 'i-lucide-check-circle', color: 'success' })
   setTimeout(() => window.location.reload(), 500)
 }
 

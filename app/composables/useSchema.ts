@@ -81,6 +81,7 @@ export function useSchema() {
       toast.add({
         title: 'Introspection unavailable',
         description: 'Schema docs are disabled. You can still run queries.',
+        icon: 'i-lucide-alert-triangle',
         color: 'warning'
       })
     } finally {

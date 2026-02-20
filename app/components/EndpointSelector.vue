@@ -95,7 +95,7 @@ async function connectToEndpoint() {
     new URL(url)
   } catch {
     urlError.value = 'Invalid URL format'
-    toast.add({ title: 'Invalid URL format', color: 'error' })
+    toast.add({ title: 'Invalid URL format', icon: 'i-lucide-x-circle', color: 'error' })
     return
   }
 
@@ -114,12 +114,13 @@ async function connectToEndpoint() {
     workspaceStore.ensureWorkspace(url)
     isEditing.value = false
     newUrl.value = ''
-    toast.add({ title: 'Connected', description: url, color: 'success' })
+    toast.add({ title: 'Connected', description: url, icon: 'i-lucide-check-circle', color: 'success' })
   } catch (error: any) {
     urlError.value = 'Could not reach endpoint'
     toast.add({
       title: 'Could not reach endpoint',
       description: error?.data?.message || 'Check the URL and try again.',
+      icon: 'i-lucide-x-circle',
       color: 'error'
     })
   } finally {
