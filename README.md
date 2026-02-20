@@ -477,9 +477,9 @@ The serverless proxy at `/api/graphql-proxy` includes multiple security measures
 
 All security constants are defined in `playground.config.ts` (project root) and imported by the proxy at build time.
 
-### Netlify Pro plan protections
+### Netlify protections
 
-This project is deployed on Netlify Pro, which provides additional platform-level protections:
+This project is deployed on Netlify, which provides additional platform-level protections:
 
 | Feature | Details |
 |---------|---------|
