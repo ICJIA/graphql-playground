@@ -158,7 +158,7 @@ https://rickandmortyapi.com/graphql
 
 ```bash
 # Clone the repo
-git clone https://github.com/cschweda/graphql-playground.git
+git clone https://github.com/ICJIA/graphql-playground.git
 cd graphql-playground
 
 # Install dependencies (yarn preferred)

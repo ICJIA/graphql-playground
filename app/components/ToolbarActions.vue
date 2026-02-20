@@ -1,7 +1,6 @@
 <!-- app/components/ToolbarActions.vue -->
 <template>
   <div class="flex items-center gap-1">
-    <UButton label="PRETTIFY" variant="ghost" color="neutral" size="xs" @click="prettify" />
     <UButton label="HISTORY" variant="ghost" color="neutral" size="xs" @click="historyOpen = true" />
     <UButton label="COPY CURL" variant="ghost" color="neutral" size="xs" @click="copyCurl" />
 
@@ -10,7 +9,6 @@
 </template>
 
 <script setup lang="ts">
-import { parse, print } from 'graphql'
 import type { HistoryEntry } from '~/composables/useHistory'
 
 const endpointsStore = useEndpointsStore()
@@ -18,18 +16,6 @@ const workspaceStore = useWorkspaceStore()
 const toast = useToast()
 
 const historyOpen = ref(false)
-
-/** Parses and re-prints the active tab's GraphQL query for consistent formatting. */
-function prettify() {
-  const tab = workspaceStore.activeTab
-  if (!tab) return
-  try {
-    const formatted = print(parse(tab.query))
-    workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, { query: formatted })
-  } catch {
-    toast.add({ title: 'Could not prettify — check query syntax', color: 'error' })
-  }
-}
 
 /** Escapes a string for safe inclusion inside single-quoted shell arguments. */
 function shellEscape(s: string): string {

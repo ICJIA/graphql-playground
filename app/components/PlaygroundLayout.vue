@@ -23,7 +23,10 @@
       <div class="flex-1 overflow-hidden relative">
         <Splitpanes class="default-theme h-full">
           <Pane :size="50" :min-size="25">
-            <div class="h-full flex flex-col bg-gray-900">
+            <div class="h-full flex flex-col bg-gray-900 relative">
+              <div class="absolute top-1 right-2 z-10">
+                <UButton label="PRETTIFY" variant="ghost" color="neutral" size="xs" class="cursor-pointer" @click="prettify" />
+              </div>
               <div class="flex-1 overflow-hidden">
                 <QueryEditor @execute="executeQuery" />
               </div>
@@ -49,6 +52,24 @@
           />
         </div>
       </div>
+      <!-- Status bar -->
+      <div class="px-4 py-1 border-t border-gray-800 flex items-center justify-between">
+        <button
+          class="text-xs text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1 px-2 py-0.5 rounded bg-gray-800/60 hover:bg-gray-700/60 cursor-pointer"
+          @click="quickstartOpen = true"
+        >
+          <UIcon name="i-lucide-rocket" class="text-xs" />
+          Quickstart
+        </button>
+        <a
+          :href="config.app.repository"
+          target="_blank"
+          class="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 cursor-pointer"
+        >
+          <UIcon name="i-lucide-github" class="text-sm" />
+          GitHub
+        </a>
+      </div>
     </template>
 
     <!-- Not connected: show welcome guide -->
@@ -63,18 +84,29 @@
 
     <!-- Settings modal -->
     <SettingsModal v-model:open="settingsOpen" />
+
+    <!-- Quickstart modal -->
+    <UModal v-model:open="quickstartOpen" title="Quickstart" :ui="{ width: 'max-w-lg' }">
+      <template #body>
+        <WelcomeGuide modal @connect="onQuickstartConnect" @manual="onQuickstartManual" />
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Splitpanes, Pane } from 'splitpanes'
+import { parse, print } from 'graphql'
+import { playgroundConfig as config } from '~~/playground.config'
 import 'splitpanes/dist/splitpanes.css'
 
 const endpointsStore = useEndpointsStore()
 const workspaceStore = useWorkspaceStore()
 const { isExecuting, executeQuery } = useGraphQL()
+const toast = useToast()
 
 const settingsOpen = ref(false)
+const quickstartOpen = ref(false)
 const endpointSelector = ref()
 
 // Provide schema state so QueryEditor and SchemaSidebar share one instance
@@ -99,5 +131,29 @@ async function onQuickConnect(url: string, exampleQuery?: string) {
       workspaceStore.updateTab(url, tab.id, { query: exampleQuery })
     }
   }
+}
+
+/** Parses and re-prints the active tab's GraphQL query for consistent formatting. */
+function prettify() {
+  const tab = workspaceStore.activeTab
+  if (!tab) return
+  try {
+    const formatted = print(parse(tab.query))
+    workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, { query: formatted })
+  } catch {
+    toast.add({ title: 'Could not prettify — check query syntax', color: 'error' })
+  }
+}
+
+/** Handles connect from the quickstart modal. */
+async function onQuickstartConnect(url: string, exampleQuery?: string) {
+  quickstartOpen.value = false
+  await onQuickConnect(url, exampleQuery)
+}
+
+/** Handles manual entry from the quickstart modal. */
+function onQuickstartManual() {
+  quickstartOpen.value = false
+  onManualConnect()
 }
 </script>

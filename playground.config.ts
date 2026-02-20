@@ -39,7 +39,7 @@ export const playgroundConfig = {
     version: '1.1.0',
 
     /** Public GitHub repository URL (shown in settings). */
-    repository: 'https://github.com/cschweda/graphql-playground',
+    repository: 'https://github.com/ICJIA/graphql-playground',
 
     /** Production URL where the app is hosted (custom domain). */
     liveUrl: 'https://playground.icjia.app',

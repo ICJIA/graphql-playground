@@ -1,6 +1,6 @@
 <!-- app/components/WelcomeGuide.vue -->
 <template>
-  <div class="h-full flex items-center justify-center bg-gray-900 p-8">
+  <div :class="modal ? 'p-4' : 'h-full flex items-center justify-center bg-gray-900 p-8'">
     <div class="max-w-lg space-y-6 text-center">
       <div>
         <UIcon name="i-lucide-braces" class="text-5xl text-primary-400 mb-3" />
@@ -73,6 +73,10 @@
 
 <script setup lang="ts">
 import { playgroundConfig as config } from '~~/playground.config'
+
+defineProps<{
+  modal?: boolean
+}>()
 
 defineEmits<{
   connect: [url: string, exampleQuery?: string]
