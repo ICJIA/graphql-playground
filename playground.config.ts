@@ -142,7 +142,16 @@ export const playgroundConfig = {
      *
      * @internal 30 seconds matches Netlify's default function timeout.
      */
-    requestTimeout: 30_000
+    requestTimeout: 30_000,
+
+    /**
+     * Maximum allowed response size in bytes from the upstream API.
+     * Responses exceeding this limit are rejected to prevent memory
+     * exhaustion in the serverless function.
+     *
+     * @internal 10 MB is generous for any legitimate GraphQL response.
+     */
+    maxResponseSize: 10 * 1024 * 1024
   },
 
   // ═══════════════════════════════════════════════════════════════════

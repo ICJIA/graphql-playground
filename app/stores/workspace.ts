@@ -37,7 +37,12 @@ function createDefaultTab(): QueryTab {
 function loadWorkspaces(): WorkspaceMap {
   if (import.meta.server) return {}
   const raw = localStorage.getItem(STORAGE_KEY)
-  return raw ? JSON.parse(raw) : {}
+  if (!raw) return {}
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return {}
+  }
 }
 
 /** Pinia store managing query workspaces, providing tabbed query editors per endpoint with auto-naming and persistence. */

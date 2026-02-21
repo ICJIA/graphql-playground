@@ -16,7 +16,12 @@ const MAX_ENTRIES = playgroundConfig.history.maxEntries
 function loadHistory(): HistoryEntry[] {
   if (import.meta.server) return []
   const raw = localStorage.getItem(STORAGE_KEY)
-  return raw ? JSON.parse(raw) : []
+  if (!raw) return []
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return []
+  }
 }
 
 // Shared reactive state across all callers

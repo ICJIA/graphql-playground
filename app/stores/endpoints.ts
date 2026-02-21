@@ -9,7 +9,12 @@ const STORAGE_KEY_ACTIVE = playgroundConfig.storageKeys.activeEndpoint
 function loadEndpoints(): SavedEndpoint[] {
   if (import.meta.server) return []
   const raw = localStorage.getItem(STORAGE_KEY_ENDPOINTS)
-  return raw ? JSON.parse(raw) : []
+  if (!raw) return []
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return []
+  }
 }
 
 /** Loads the active endpoint URL from localStorage; returns an empty string on the server or if no data exists. */

@@ -20,6 +20,7 @@ const ALLOWED_HEADERS: readonly string[] = playgroundConfig.proxy.allowedHeaders
 const BLOCKED_HOSTNAMES: readonly string[] = playgroundConfig.proxy.blockedHostnames
 const MAX_QUERY_LENGTH = playgroundConfig.proxy.maxQueryLength
 const REQUEST_TIMEOUT = playgroundConfig.proxy.requestTimeout
+const MAX_RESPONSE_SIZE = playgroundConfig.proxy.maxResponseSize
 
 /**
  * Checks whether an IP address is private, loopback, or reserved (SSRF protection).
@@ -103,7 +104,16 @@ function fetchWithPinnedIP(
         else if (encoding === 'deflate') stream = res.pipe(createInflate())
 
         const chunks: Buffer[] = []
-        stream.on('data', (chunk: Buffer) => chunks.push(chunk))
+        let totalSize = 0
+        stream.on('data', (chunk: Buffer) => {
+          totalSize += chunk.length
+          if (totalSize > MAX_RESPONSE_SIZE) {
+            req.destroy()
+            reject(Object.assign(new Error('Response exceeds maximum allowed size'), { statusCode: 413 }))
+            return
+          }
+          chunks.push(chunk)
+        })
         stream.on('error', reject)
         stream.on('end', () => {
           const body = Buffer.concat(chunks).toString('utf-8')
