@@ -1,6 +1,6 @@
 <!-- app/components/PlaygroundLayout.vue -->
 <template>
-  <div class="h-screen flex flex-col bg-gray-950 text-white">
+  <div class="h-screen flex flex-col bg-gray-950 text-white" @click="dismissToasts">
     <!-- Top bar: Endpoint selector -->
     <header class="flex items-center gap-2 px-4 py-2 border-b border-gray-800">
       <h1 class="sr-only">{{ config.app.name }}</h1>
@@ -146,6 +146,14 @@ function prettify() {
     workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, { query: formatted })
   } catch {
     toast.add({ title: 'Could not prettify — check query syntax', icon: 'i-lucide-x-circle', color: 'error' })
+  }
+}
+
+/** Dismisses all visible toasts when clicking outside of them. */
+function dismissToasts(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('[data-sonner-toaster]')) {
+    toast.clear()
   }
 }
 
