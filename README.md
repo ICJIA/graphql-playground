@@ -142,7 +142,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 - **Large schema detection** — warns when a schema exceeds 500 types and suggests the native playground
 
 **Settings & Persistence**
-- **Query history** — browse and re-run previously executed queries (per-endpoint)
+- **Query history** — browse and re-run previously executed queries across all endpoints, with endpoint info shown for each entry
 - **Settings panel** — adjust editor font size, export/import data, clear all saved data (with confirmation)
 - **Quick-start guide** — example endpoints and usage instructions shown on first launch, re-openable anytime via the Quickstart link in the status bar
 - **Full persistence** — everything is saved to `localStorage` and restored when you return
