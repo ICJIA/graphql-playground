@@ -149,12 +149,13 @@ function prettify() {
   }
 }
 
-/** Dismisses all visible toasts when clicking outside of them. */
+/** Dismisses all visible toasts when clicking on background areas (not buttons or inputs). */
 function dismissToasts(event: MouseEvent) {
   const target = event.target as HTMLElement
-  if (!target.closest('[data-sonner-toaster]')) {
-    toast.clear()
+  if (target.closest('[data-sonner-toaster]') || target.closest('button') || target.closest('a') || target.closest('input') || target.closest('select')) {
+    return
   }
+  toast.clear()
 }
 
 /** Deactivates the current endpoint to show the full-page welcome guide. All saved data is preserved in localStorage. */
