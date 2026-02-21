@@ -50,13 +50,26 @@ function copyCurl() {
   toast.add({ title: 'CURL command copied to clipboard', description: preview, icon: 'i-lucide-check-circle', color: 'success', duration: 7000 })
 }
 
-/** Restores a history entry's query and variables into the active tab. */
-function onHistorySelect(entry: HistoryEntry) {
+/** Restores a history entry's query and variables, switching endpoints if needed. */
+async function onHistorySelect(entry: HistoryEntry) {
+  const targetEndpoint = entry.endpoint || endpointsStore.activeEndpoint
+
+  // Switch endpoint if the history entry is from a different one
+  if (targetEndpoint !== endpointsStore.activeEndpoint) {
+    endpointsStore.setActiveEndpoint(targetEndpoint)
+    workspaceStore.ensureWorkspace(targetEndpoint)
+    // Wait for reactivity to propagate so workspace getters reflect the new endpoint
+    await nextTick()
+  }
+
   const tab = workspaceStore.activeTab
   if (!tab) return
-  workspaceStore.updateTab(endpointsStore.activeEndpoint, tab.id, {
+
+  // Clear results and load the historical query
+  workspaceStore.updateTab(targetEndpoint, tab.id, {
     query: entry.query,
-    variables: entry.variables
+    variables: entry.variables,
+    results: ''
   })
 }
 </script>

@@ -42,9 +42,43 @@ export function useSchema() {
   })
 
   /**
+   * Sends an introspection query to the proxy and processes the result.
+   * Returns true on success, false on failure.
+   */
+  async function attemptIntrospection(
+    fetchUrl: string,
+    headers: Record<string, string>,
+    abortController: AbortController
+  ): Promise<boolean> {
+    const result = await $fetch<{ data: IntrospectionQuery }>('/api/graphql-proxy', {
+      method: 'POST',
+      body: {
+        endpoint: fetchUrl,
+        query: getIntrospectionQuery(),
+        headers
+      },
+      signal: abortController.signal
+    })
+
+    // Guard: ignore result if endpoint changed while awaiting
+    if (endpointsStore.activeEndpoint !== fetchUrl) return false
+
+    if (result?.data) {
+      schema.value = buildClientSchema(result.data)
+      sdl.value = printSchema(schema.value)
+
+      const types = Object.keys(schema.value.getTypeMap()).filter((t) => !t.startsWith('__'))
+      typeCount.value = types.length
+      isLargeSchema.value = types.length > LARGE_SCHEMA_THRESHOLD
+      return true
+    }
+    return false
+  }
+
+  /**
    * Sends an introspection query to the active endpoint's proxy and builds the client schema.
    * Cancels any in-flight request before starting a new one to prevent race conditions
-   * when rapidly switching endpoints.
+   * when rapidly switching endpoints. Retries once on transient failures.
    */
   async function fetchSchema() {
     const endpoint = endpointsStore.activeEndpointData
@@ -59,6 +93,9 @@ export function useSchema() {
 
     const fetchUrl = endpoint.url
 
+    // Clear previous state
+    schema.value = null
+    sdl.value = ''
     isLoading.value = true
     introspectionDisabled.value = false
     isLargeSchema.value = false
@@ -69,41 +106,38 @@ export function useSchema() {
     }
 
     try {
-      const result = await $fetch<{ data: IntrospectionQuery }>('/api/graphql-proxy', {
-        method: 'POST',
-        body: {
-          endpoint: fetchUrl,
-          query: getIntrospectionQuery(),
-          headers
-        },
-        signal: abortController.signal
-      })
-
-      // Guard: ignore result if endpoint changed while awaiting
-      if (endpointsStore.activeEndpoint !== fetchUrl) return
-
-      if (result?.data) {
-        schema.value = buildClientSchema(result.data)
-        sdl.value = printSchema(schema.value)
-
-        const types = Object.keys(schema.value.getTypeMap()).filter((t) => !t.startsWith('__'))
-        typeCount.value = types.length
-        isLargeSchema.value = types.length > LARGE_SCHEMA_THRESHOLD
-      } else {
+      const success = await attemptIntrospection(fetchUrl, headers, abortController)
+      if (!success && endpointsStore.activeEndpoint === fetchUrl) {
         introspectionDisabled.value = true
       }
     } catch (error: unknown) {
       // Silently ignore aborted requests — a newer fetch is already in progress
-      if (error instanceof DOMException && error.name === 'AbortError') return
+      if ((error as any)?.name === 'AbortError') return
       if (endpointsStore.activeEndpoint !== fetchUrl) return
 
-      introspectionDisabled.value = true
-      toast.add({
-        title: 'Introspection unavailable',
-        description: 'Schema docs are disabled. You can still run queries.',
-        icon: 'i-lucide-alert-triangle',
-        color: 'warning'
-      })
+      // Retry once after a short delay for transient failures
+      try {
+        await new Promise((r) => setTimeout(r, 1000))
+        // Re-check: endpoint may have changed during the delay
+        if (endpointsStore.activeEndpoint !== fetchUrl) return
+        if (abortController.signal.aborted) return
+
+        const success = await attemptIntrospection(fetchUrl, headers, abortController)
+        if (!success && endpointsStore.activeEndpoint === fetchUrl) {
+          introspectionDisabled.value = true
+        }
+      } catch (retryError: unknown) {
+        if ((retryError as any)?.name === 'AbortError') return
+        if (endpointsStore.activeEndpoint !== fetchUrl) return
+
+        introspectionDisabled.value = true
+        toast.add({
+          title: 'Introspection unavailable',
+          description: 'Schema docs are disabled. You can still run queries.',
+          icon: 'i-lucide-alert-triangle',
+          color: 'warning'
+        })
+      }
     } finally {
       // Only clear loading if this is still the active request
       if (endpointsStore.activeEndpoint === fetchUrl) {
