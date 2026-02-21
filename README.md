@@ -4,6 +4,8 @@ A modern, configurable GraphQL playground built with Nuxt 4, Nuxt UI 4, and Code
 
 **Live:** [https://playground.icjia.app](https://playground.icjia.app)
 
+![ICJIA GraphQL Playground screenshot](public/screenshot.png)
+
 ---
 
 ## Why this project exists
@@ -102,7 +104,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch, re-openable via status bar |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 138 tests (unit, component, API) via Vitest |
+| Test suite | None | 217 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -246,7 +248,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 138 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 217 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -259,7 +261,9 @@ yarn test:watch
 | Suite | Tests | What it covers |
 |-------|-------|----------------|
 | `tests/unit/playground-config.test.ts` | 17 | Config structure, URLs, security settings, storage keys, defaults, example queries |
-| `tests/unit/stores.test.ts` | 11 | Pinia store persistence, endpoint sorting, workspace defaults |
+| `tests/unit/stores.test.ts` | 52 | Real Pinia store instances — endpoints (add, remove, sort, persist, bearer tokens), workspaces (tabs, auto-naming, close protection, getters), settings (update, reset, defaults) |
+| `tests/unit/useGraphQL.test.ts` | 19 | Query execution, result storage, variable parsing (valid/invalid JSON), bearer token headers, error handling, history recording, isExecuting lifecycle |
+| `tests/unit/useSchema.test.ts` | 19 | Schema introspection, SDL generation, type counting, computed types, abort handling, retry logic, endpoint change guards, toast notifications |
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
 | `tests/api/graphql-proxy.test.ts` | 64 | SSRF blocking (IPv4, IPv6, IPv6-mapped, link-local/metadata, DNS resolution), CRLF header injection, header sanitization, origin validation, URL checks, shell escape for CURL copy, redirect protection, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
@@ -610,7 +614,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (138 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (217 tests) |
 | [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
 | [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
 | [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |
