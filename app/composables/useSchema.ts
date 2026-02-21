@@ -25,6 +25,8 @@ export function useSchema() {
   const isLargeSchema = ref(false)
   const typeCount = ref(0)
 
+  let activeAbortController: AbortController | null = null
+
   /** The root Query type from the introspected schema, or null if unavailable. */
   const queryType = computed(() => schema.value?.getQueryType() || null)
   /** The root Mutation type from the introspected schema, or null if unavailable. */
@@ -41,11 +43,21 @@ export function useSchema() {
 
   /**
    * Sends an introspection query to the active endpoint's proxy and builds the client schema.
-   * Sets `introspectionDisabled` to true if the endpoint does not support introspection.
+   * Cancels any in-flight request before starting a new one to prevent race conditions
+   * when rapidly switching endpoints.
    */
   async function fetchSchema() {
     const endpoint = endpointsStore.activeEndpointData
     if (!endpoint) return
+
+    // Cancel any in-flight request
+    if (activeAbortController) {
+      activeAbortController.abort()
+    }
+    const abortController = new AbortController()
+    activeAbortController = abortController
+
+    const fetchUrl = endpoint.url
 
     isLoading.value = true
     introspectionDisabled.value = false
@@ -60,11 +72,15 @@ export function useSchema() {
       const result = await $fetch<{ data: IntrospectionQuery }>('/api/graphql-proxy', {
         method: 'POST',
         body: {
-          endpoint: endpoint.url,
+          endpoint: fetchUrl,
           query: getIntrospectionQuery(),
           headers
-        }
+        },
+        signal: abortController.signal
       })
+
+      // Guard: ignore result if endpoint changed while awaiting
+      if (endpointsStore.activeEndpoint !== fetchUrl) return
 
       if (result?.data) {
         schema.value = buildClientSchema(result.data)
@@ -76,7 +92,11 @@ export function useSchema() {
       } else {
         introspectionDisabled.value = true
       }
-    } catch {
+    } catch (error: unknown) {
+      // Silently ignore aborted requests — a newer fetch is already in progress
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      if (endpointsStore.activeEndpoint !== fetchUrl) return
+
       introspectionDisabled.value = true
       toast.add({
         title: 'Introspection unavailable',
@@ -85,7 +105,13 @@ export function useSchema() {
         color: 'warning'
       })
     } finally {
-      isLoading.value = false
+      // Only clear loading if this is still the active request
+      if (endpointsStore.activeEndpoint === fetchUrl) {
+        isLoading.value = false
+      }
+      if (activeAbortController === abortController) {
+        activeAbortController = null
+      }
     }
   }
 
