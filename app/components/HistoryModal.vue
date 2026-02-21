@@ -26,7 +26,7 @@
         >
           <pre class="text-xs text-gray-300 truncate font-mono">{{ entry.query.slice(0, 120) }}</pre>
           <div class="flex items-center justify-between mt-1">
-            <span class="text-xs text-gray-400 truncate max-w-[60%]" :title="entry.endpoint">{{ formatEndpoint(entry.endpoint) }}</span>
+            <span class="text-xs text-green-400 truncate max-w-[60%]" :title="entry.endpoint">{{ formatEndpoint(entry.endpoint) }}</span>
             <span class="text-xs text-gray-400 shrink-0">{{ new Date(entry.timestamp).toLocaleString() }}</span>
           </div>
         </button>
