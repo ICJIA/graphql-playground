@@ -47,7 +47,7 @@ function copyCurl() {
 
   navigator.clipboard.writeText(curl)
   const preview = curl.length > 300 ? curl.slice(0, 300) + '...' : curl
-  toast.add({ title: 'CURL command copied to clipboard', description: preview, icon: 'i-lucide-check-circle', color: 'success' })
+  toast.add({ title: 'CURL command copied to clipboard', description: preview, icon: 'i-lucide-check-circle', color: 'success', duration: 7000 })
 }
 
 /** Restores a history entry's query and variables into the active tab. */
