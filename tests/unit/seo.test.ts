@@ -20,7 +20,8 @@ describe('SEO configuration', () => {
       expect(playgroundConfig.app.description.length).toBeGreaterThan(0)
     })
 
-    it('app description is suitable for meta tags (under 160 chars)', () => {
+    it('app description is suitable for meta tags (120–160 chars)', () => {
+      expect(playgroundConfig.app.description.length).toBeGreaterThanOrEqual(120)
       expect(playgroundConfig.app.description.length).toBeLessThanOrEqual(160)
     })
   })

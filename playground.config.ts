@@ -33,7 +33,7 @@ export const playgroundConfig = {
     name: 'ICJIA GraphQL Playground',
 
     /** Short description used in meta tags. */
-    description: 'A modern, configurable GraphQL playground',
+    description: 'A modern, self-hosted GraphQL IDE with schema-aware autocomplete, multi-endpoint workspaces, bearer token auth, and a built-in CORS proxy.',
 
     /** Semver version string. Bump when you release changes. */
     version: '1.1.0',
