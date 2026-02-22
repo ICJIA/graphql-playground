@@ -4,6 +4,8 @@ A modern, configurable GraphQL playground built with Nuxt 4, Nuxt UI 4, and Code
 
 **Live:** [https://playground.icjia.app](https://playground.icjia.app)
 
+![ICJIA GraphQL Playground](public/og-image.png)
+
 ![ICJIA GraphQL Playground screenshot](public/screenshot.png)
 
 ---
