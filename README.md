@@ -106,7 +106,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch, re-openable via status bar |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 217 tests (unit, component, API) via Vitest |
+| Test suite | None | 251 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -250,7 +250,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 217 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 251 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -270,6 +270,7 @@ yarn test:watch
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
 | `tests/api/graphql-proxy.test.ts` | 64 | SSRF blocking (IPv4, IPv6, IPv6-mapped, link-local/metadata, DNS resolution), CRLF header injection, header sanitization, origin validation, URL checks, shell escape for CURL copy, redirect protection, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
 | `tests/components/WelcomeGuide.test.ts` | 9 | Rendering, example endpoints, manual endpoint option, emit events, content, modal prop styling |
+| `tests/unit/seo.test.ts` | 34 | SEO asset validation (OG image PNG integrity, file sizes), meta tag coverage (OG, Twitter Card, theme-color, author, keywords), link tags (canonical, favicon), @nuxtjs/seo module config (sitemap, robots, ogImage/schemaOrg disabled), HTML attributes |
 | `tests/components/ResultsPanel.test.ts` | 4 | Placeholder state, results display, button visibility |
 
 ---
@@ -298,7 +299,7 @@ Every setting has a JSDoc comment explaining what it does and whether it's safe 
 
 ## Deployment
 
-This project is deployed on [Netlify Pro](https://www.netlify.com/) but can be adapted for other platforms.
+This project is deployed on [Netlify](https://www.netlify.com/) but can be adapted for other platforms.
 
 ### Deploy to Netlify (recommended)
 
@@ -616,10 +617,10 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (217 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (251 tests) |
 | [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
 | [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
-| [Netlify](https://www.netlify.com) | Pro | Hosting (static files + serverless functions) |
+| [Netlify](https://www.netlify.com) | — | Hosting (static files + serverless functions) |
 
 ---
 
