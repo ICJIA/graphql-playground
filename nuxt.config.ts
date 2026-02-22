@@ -1,11 +1,19 @@
 import { playgroundConfig } from './playground.config'
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxt/eslint'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxt/eslint', '@nuxtjs/seo'],
 
   css: ['~/assets/css/main.css', '~/assets/css/splitpanes.css'],
 
   ssr: false,
+
+  // ── Site-wide SEO config (consumed by @nuxtjs/seo sub-modules) ──
+  site: {
+    url: playgroundConfig.app.liveUrl,
+    name: playgroundConfig.app.name,
+    description: playgroundConfig.app.description,
+    defaultLocale: 'en'
+  },
 
   app: {
     head: {
@@ -35,10 +43,34 @@ export default defineNuxtConfig({
         { name: 'keywords', content: 'graphql, playground, ide, query, schema, introspection, cors proxy, developer tools' }
       ],
       link: [
-        { rel: 'canonical', href: playgroundConfig.app.liveUrl },
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'canonical', href: playgroundConfig.app.liveUrl }
       ]
     }
+  },
+
+  // ── Sitemap ──
+  sitemap: {
+    urls: [
+      { loc: '/', changefreq: 'weekly', priority: 1.0 }
+    ]
+  },
+
+  // ── Robots ──
+  robots: {
+    groups: [
+      { userAgent: '*', allow: '/' }
+    ]
+  },
+
+  // ── Disable OG image generation (we use a static image) ──
+  ogImage: {
+    enabled: false
+  },
+
+  // ── Schema.org disabled (requires SSR) ──
+  schemaOrg: {
+    enabled: false
   },
 
   colorMode: {
