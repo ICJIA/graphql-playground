@@ -53,10 +53,11 @@
         >
           <UIcon name="i-lucide-shield-alert" class="shrink-0" />
           <span v-if="settingsStore.settings.tokenStorage === 'session'">
-            Token stored in session memory only — cleared when you close this tab.
+            Token stored in session memory only — cleared when you close this tab. Token is visible in browser DevTools
+            Network tab.
           </span>
           <span v-else>
-            Token stored in browser localStorage. Use
+            Token stored in browser localStorage and visible in DevTools Network tab. Use
             <em>session-only</em>
             storage in Settings for sensitive tokens.
           </span>

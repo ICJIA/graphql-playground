@@ -21,6 +21,45 @@ const BLOCKED_HOSTNAMES: readonly string[] = playgroundConfig.proxy.blockedHostn
 const MAX_QUERY_LENGTH = playgroundConfig.proxy.maxQueryLength
 const REQUEST_TIMEOUT = playgroundConfig.proxy.requestTimeout
 const MAX_RESPONSE_SIZE = playgroundConfig.proxy.maxResponseSize
+const RATE_LIMIT_WINDOW = playgroundConfig.proxy.rateLimitWindow
+const RATE_LIMIT_MAX = playgroundConfig.proxy.rateLimitMax
+
+/**
+ * In-memory sliding window rate limiter keyed by client IP.
+ * Effective within a single warm serverless function instance.
+ * Entries are lazily pruned on each check.
+ */
+const rateLimitMap = new Map<string, number[]>()
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const windowStart = now - RATE_LIMIT_WINDOW
+
+  let timestamps = rateLimitMap.get(ip)
+  if (timestamps) {
+    // Prune entries outside the window
+    timestamps = timestamps.filter((t) => t > windowStart)
+  } else {
+    timestamps = []
+  }
+
+  if (timestamps.length >= RATE_LIMIT_MAX) {
+    rateLimitMap.set(ip, timestamps)
+    return true
+  }
+
+  timestamps.push(now)
+  rateLimitMap.set(ip, timestamps)
+
+  // Lazy eviction: if the map grows beyond 10 000 IPs, clear stale entries
+  if (rateLimitMap.size > 10_000) {
+    for (const [key, ts] of rateLimitMap) {
+      if (ts.every((t) => t <= windowStart)) rateLimitMap.delete(key)
+    }
+  }
+
+  return false
+}
 
 /**
  * Checks whether an IP address is private, loopback, or reserved (SSRF protection).
@@ -97,6 +136,15 @@ function fetchWithPinnedIP(
         ...(isHttps ? { servername: url.hostname } : {})
       },
       (res) => {
+        // Reject redirects to prevent SSRF via 3xx → private IP
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400) {
+          req.destroy()
+          reject(
+            Object.assign(new Error('Redirect responses are not followed (SSRF protection)'), { statusCode: 403 })
+          )
+          return
+        }
+
         // Decompress if the upstream sends gzip or deflate
         let stream: NodeJS.ReadableStream = res
         const encoding = res.headers['content-encoding']
@@ -221,6 +269,20 @@ export default defineEventHandler(async (event) => {
     getRequestHeader(event, 'x-nf-client-connection-ip') ||
     getRequestHeader(event, 'x-forwarded-for')?.split(',')[0]?.trim() ||
     'unknown'
+
+  // --- Rate limiting (per-IP sliding window) ---
+  if (isRateLimited(clientIP)) {
+    logProxyRequest({
+      status: 'blocked',
+      statusCode: 429,
+      reason: 'rate_limited',
+      ip: clientIP
+    })
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'Too many requests — please slow down'
+    })
+  }
 
   // --- Origin validation (prevent external abuse) ---
   const origin = getRequestHeader(event, 'origin')

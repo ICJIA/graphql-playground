@@ -151,7 +151,21 @@ export const playgroundConfig = {
      *
      * @internal 10 MB is generous for any legitimate GraphQL response.
      */
-    maxResponseSize: 10 * 1024 * 1024
+    maxResponseSize: 10 * 1024 * 1024,
+
+    /**
+     * Sliding window duration (ms) for per-IP rate limiting.
+     *
+     * @internal 60 seconds is a standard window.
+     */
+    rateLimitWindow: 60_000,
+
+    /**
+     * Maximum requests per IP within the rate-limit window.
+     *
+     * @internal 60 req/min is generous for interactive use.
+     */
+    rateLimitMax: 60
   },
 
   // ═══════════════════════════════════════════════════════════════════

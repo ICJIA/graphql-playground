@@ -44,7 +44,7 @@ const csp = [
   `default-src 'self'`,
   `script-src ${scriptSrc}`,
   `style-src 'self' 'unsafe-inline'`,
-  `connect-src 'self' https:`,
+  `connect-src 'self'`,
   `img-src 'self' data:`,
   `font-src 'self' data:`,
   `frame-ancestors 'none'`

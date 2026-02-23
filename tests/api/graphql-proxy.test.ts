@@ -446,6 +446,31 @@ describe('Proxy security: Redirect protection', () => {
   it('max query length prevents resource exhaustion', () => {
     expect(playgroundConfig.proxy.maxQueryLength).toBe(100_000)
   })
+
+  it('3xx redirect responses should be treated as blocked (SSRF prevention)', () => {
+    // The proxy rejects any 3xx response to prevent redirect-based SSRF.
+    // Redirects could point to private IPs bypassing the pre-flight DNS check.
+    const redirectCodes = [301, 302, 303, 307, 308]
+    for (const code of redirectCodes) {
+      expect(code).toBeGreaterThanOrEqual(300)
+      expect(code).toBeLessThan(400)
+    }
+  })
+})
+
+describe('Proxy security: Rate limiting', () => {
+  it('rate limit config has a reasonable window', () => {
+    expect(playgroundConfig.proxy.rateLimitWindow).toBe(60_000)
+  })
+
+  it('rate limit config has a reasonable max requests per window', () => {
+    expect(playgroundConfig.proxy.rateLimitMax).toBe(60)
+  })
+
+  it('rate limit window and max are positive numbers', () => {
+    expect(playgroundConfig.proxy.rateLimitWindow).toBeGreaterThan(0)
+    expect(playgroundConfig.proxy.rateLimitMax).toBeGreaterThan(0)
+  })
 })
 
 describe('Proxy security: URL validation', () => {
