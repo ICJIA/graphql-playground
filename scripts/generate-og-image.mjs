@@ -1,11 +1,11 @@
-import { chromium } from 'playwright-core';
-import { execSync } from 'child_process';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { chromium } from 'playwright-core'
+import { execSync } from 'child_process'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import fs from 'fs'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const outputPath = path.resolve(__dirname, '../public/og-image.png');
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const outputPath = path.resolve(__dirname, '../public/og-image.png')
 
 const html = `<!DOCTYPE html>
 <html>
@@ -342,58 +342,58 @@ const html = `<!DOCTYPE html>
     </div>
   </div>
 </body>
-</html>`;
+</html>`
 
 async function generate() {
-  console.log('Launching browser...');
+  console.log('Launching browser...')
 
   // Try to find Chrome
   const chromePaths = [
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-  ];
+    '/usr/bin/chromium-browser'
+  ]
 
-  let executablePath = null;
+  let executablePath = null
   for (const p of chromePaths) {
     if (fs.existsSync(p)) {
-      executablePath = p;
-      break;
+      executablePath = p
+      break
     }
   }
 
   const launchOptions = {
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  };
-
-  if (executablePath) {
-    launchOptions.executablePath = executablePath;
-    console.log(`Using Chrome at: ${executablePath}`);
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
   }
 
-  const browser = await chromium.launch(launchOptions);
-  const page = await browser.newPage();
+  if (executablePath) {
+    launchOptions.executablePath = executablePath
+    console.log(`Using Chrome at: ${executablePath}`)
+  }
 
-  await page.setViewportSize({ width: 1200, height: 630 });
+  const browser = await chromium.launch(launchOptions)
+  const page = await browser.newPage()
+
+  await page.setViewportSize({ width: 1200, height: 630 })
 
   // Set HTML content directly
-  await page.setContent(html, { waitUntil: 'networkidle' });
+  await page.setContent(html, { waitUntil: 'networkidle' })
 
   // Wait for fonts
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1500)
 
   await page.screenshot({
     path: outputPath,
     type: 'png',
-    clip: { x: 0, y: 0, width: 1200, height: 630 },
-  });
+    clip: { x: 0, y: 0, width: 1200, height: 630 }
+  })
 
-  await browser.close();
-  console.log(`✓ og-image.png saved to: ${outputPath}`);
+  await browser.close()
+  console.log(`✓ og-image.png saved to: ${outputPath}`)
 }
 
-generate().catch(err => {
-  console.error('Error:', err);
-  process.exit(1);
-});
+generate().catch((err) => {
+  console.error('Error:', err)
+  process.exit(1)
+})

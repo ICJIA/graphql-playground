@@ -4,6 +4,33 @@ import { playgroundConfig } from '~~/playground.config'
 
 const STORAGE_KEY_ENDPOINTS = playgroundConfig.storageKeys.endpoints
 const STORAGE_KEY_ACTIVE = playgroundConfig.storageKeys.activeEndpoint
+const STORAGE_KEY_SESSION_TOKENS = 'gql-playground-session-tokens'
+
+/** Returns the token storage preference from the settings store in localStorage. */
+function getTokenStorageMode(): 'local' | 'session' {
+  if (import.meta.server) return playgroundConfig.defaults.tokenStorage
+  try {
+    const raw = localStorage.getItem(playgroundConfig.storageKeys.settings)
+    if (raw) {
+      const settings = JSON.parse(raw)
+      if (settings.tokenStorage === 'session') return 'session'
+    }
+  } catch {
+    /* fall through */
+  }
+  return playgroundConfig.defaults.tokenStorage
+}
+
+/** Loads session-stored bearer tokens (URL → token map). */
+function loadSessionTokens(): Record<string, string> {
+  if (import.meta.server) return {}
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY_SESSION_TOKENS)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
 
 /** Loads saved endpoints from localStorage; returns an empty array on the server or if no data exists. */
 function loadEndpoints(): SavedEndpoint[] {
@@ -11,7 +38,16 @@ function loadEndpoints(): SavedEndpoint[] {
   const raw = localStorage.getItem(STORAGE_KEY_ENDPOINTS)
   if (!raw) return []
   try {
-    return JSON.parse(raw)
+    const endpoints: SavedEndpoint[] = JSON.parse(raw)
+    // If using session storage for tokens, overlay session tokens onto endpoints
+    if (getTokenStorageMode() === 'session') {
+      const sessionTokens = loadSessionTokens()
+      return endpoints.map((ep) => ({
+        ...ep,
+        bearerToken: sessionTokens[ep.url] || ''
+      }))
+    }
+    return endpoints
   } catch {
     return []
   }
@@ -91,7 +127,20 @@ export const useEndpointsStore = defineStore('endpoints', {
 
     /** Persists the current endpoints list and active endpoint URL to localStorage. */
     persist() {
-      localStorage.setItem(STORAGE_KEY_ENDPOINTS, JSON.stringify(this.endpoints))
+      if (getTokenStorageMode() === 'session') {
+        // Store tokens in sessionStorage, strip them from localStorage
+        const sessionTokens: Record<string, string> = {}
+        const stripped = this.endpoints.map((ep) => {
+          if (ep.bearerToken) sessionTokens[ep.url] = ep.bearerToken
+          return { ...ep, bearerToken: '' }
+        })
+        localStorage.setItem(STORAGE_KEY_ENDPOINTS, JSON.stringify(stripped))
+        sessionStorage.setItem(STORAGE_KEY_SESSION_TOKENS, JSON.stringify(sessionTokens))
+      } else {
+        localStorage.setItem(STORAGE_KEY_ENDPOINTS, JSON.stringify(this.endpoints))
+        // Clean up any stale session tokens
+        sessionStorage.removeItem(STORAGE_KEY_SESSION_TOKENS)
+      }
       localStorage.setItem(STORAGE_KEY_ACTIVE, this.activeEndpoint)
     }
   }

@@ -88,65 +88,65 @@ describe('SEO configuration', () => {
     const config = readConfig()
 
     it('has og:type meta tag', () => {
-      expect(config).toContain("og:type")
+      expect(config).toContain('og:type')
       expect(config).toContain("'website'")
     })
 
     it('has og:title meta tag', () => {
-      expect(config).toContain("og:title")
+      expect(config).toContain('og:title')
     })
 
     it('has og:description meta tag', () => {
-      expect(config).toContain("og:description")
+      expect(config).toContain('og:description')
     })
 
     it('has og:image meta tag pointing to og-image.png', () => {
-      expect(config).toContain("og:image")
+      expect(config).toContain('og:image')
       expect(config).toContain('/og-image.png')
     })
 
     it('has og:image dimensions (1200x630)', () => {
-      expect(config).toContain("og:image:width")
+      expect(config).toContain('og:image:width')
       expect(config).toContain("'1200'")
-      expect(config).toContain("og:image:height")
+      expect(config).toContain('og:image:height')
       expect(config).toContain("'630'")
     })
 
     it('has og:image alt text', () => {
-      expect(config).toContain("og:image:alt")
+      expect(config).toContain('og:image:alt')
     })
 
     it('has og:url meta tag', () => {
-      expect(config).toContain("og:url")
+      expect(config).toContain('og:url')
     })
 
     it('has og:site_name meta tag', () => {
-      expect(config).toContain("og:site_name")
+      expect(config).toContain('og:site_name')
     })
 
     it('has twitter:card set to summary_large_image', () => {
-      expect(config).toContain("twitter:card")
+      expect(config).toContain('twitter:card')
       expect(config).toContain("'summary_large_image'")
     })
 
     it('has twitter:title meta tag', () => {
-      expect(config).toContain("twitter:title")
+      expect(config).toContain('twitter:title')
     })
 
     it('has twitter:description meta tag', () => {
-      expect(config).toContain("twitter:description")
+      expect(config).toContain('twitter:description')
     })
 
     it('has twitter:image meta tag', () => {
-      expect(config).toContain("twitter:image")
+      expect(config).toContain('twitter:image')
     })
 
     it('has twitter:image:alt meta tag', () => {
-      expect(config).toContain("twitter:image:alt")
+      expect(config).toContain('twitter:image:alt')
     })
 
     it('has theme-color meta tag', () => {
-      expect(config).toContain("theme-color")
+      expect(config).toContain('theme-color')
       expect(config).toContain("'#030712'")
     })
 
@@ -157,7 +157,7 @@ describe('SEO configuration', () => {
 
     it('has keywords meta tag', () => {
       expect(config).toContain("'keywords'")
-      expect(config).toContain("graphql")
+      expect(config).toContain('graphql')
     })
   })
 

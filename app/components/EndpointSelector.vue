@@ -12,7 +12,14 @@
         placeholder="Select an endpoint..."
         @update:model-value="onSelectEndpoint"
       />
-      <UButton icon="i-lucide-pencil" variant="ghost" color="neutral" size="xs" aria-label="Edit endpoint" @click="startEditing" />
+      <UButton
+        icon="i-lucide-pencil"
+        variant="ghost"
+        color="neutral"
+        size="xs"
+        aria-label="Edit endpoint"
+        @click="startEditing"
+      />
     </div>
 
     <div v-else class="flex-1 flex items-center gap-2">

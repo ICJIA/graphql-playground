@@ -16,6 +16,36 @@
 
         <USeparator />
 
+        <!-- Token Storage Mode -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-300">Token Storage</label>
+          <div class="flex items-center gap-3">
+            <UButton
+              :label="settingsStore.settings.tokenStorage === 'session' ? 'Session Only' : 'Persistent'"
+              :icon="
+                settingsStore.settings.tokenStorage === 'session' ? 'i-lucide-shield-check' : 'i-lucide-hard-drive'
+              "
+              :variant="settingsStore.settings.tokenStorage === 'session' ? 'solid' : 'outline'"
+              :color="settingsStore.settings.tokenStorage === 'session' ? 'success' : 'neutral'"
+              size="sm"
+              @click="toggleTokenStorage"
+            />
+          </div>
+          <p class="text-xs text-gray-500 leading-relaxed">
+            <span v-if="settingsStore.settings.tokenStorage === 'session'">
+              Bearer tokens are stored in session memory and cleared when you close the browser tab. Recommended for
+              sensitive tokens.
+            </span>
+            <span v-else>
+              Bearer tokens persist in localStorage across browser sessions. Switch to
+              <strong class="text-gray-400">Session Only</strong>
+              if you use sensitive or production tokens.
+            </span>
+          </p>
+        </div>
+
+        <USeparator />
+
         <!-- Export / Import -->
         <div class="space-y-2">
           <p class="text-sm font-medium text-gray-300">Data Management</p>
@@ -135,6 +165,20 @@ const toast = useToast()
 const fileInput = ref<HTMLInputElement | null>(null)
 const showClearConfirmation = ref(false)
 const clearConfirmText = ref('')
+
+/** Toggles bearer token storage between localStorage and sessionStorage. */
+function toggleTokenStorage() {
+  const next = settingsStore.settings.tokenStorage === 'session' ? 'local' : 'session'
+  settingsStore.updateSettings({ tokenStorage: next })
+  // Re-persist endpoints with the new storage mode
+  const endpointsStore = useEndpointsStore()
+  endpointsStore.persist()
+  toast.add({
+    title: next === 'session' ? 'Tokens now stored in session only' : 'Tokens now persist across sessions',
+    icon: next === 'session' ? 'i-lucide-shield-check' : 'i-lucide-hard-drive',
+    color: 'success'
+  })
+}
 
 /**
  * Adjusts the editor font size by the given delta, clamped to the 10-24 px range.

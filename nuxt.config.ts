@@ -40,7 +40,10 @@ export default defineNuxtConfig({
         // Additional SEO
         { name: 'theme-color', content: '#030712' },
         { name: 'author', content: 'ICJIA' },
-        { name: 'keywords', content: 'graphql, playground, ide, query, schema, introspection, cors proxy, developer tools' }
+        {
+          name: 'keywords',
+          content: 'graphql, playground, ide, query, schema, introspection, cors proxy, developer tools'
+        }
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
@@ -51,16 +54,12 @@ export default defineNuxtConfig({
 
   // ── Sitemap ──
   sitemap: {
-    urls: [
-      { loc: '/', changefreq: 'weekly', priority: 1.0 }
-    ]
+    urls: [{ loc: '/', changefreq: 'weekly', priority: 1.0 }]
   },
 
   // ── Robots ──
   robots: {
-    groups: [
-      { userAgent: '*', allow: '/' }
-    ]
+    groups: [{ userAgent: '*', allow: '/' }]
   },
 
   // ── Disable OG image generation (we use a static image) ──

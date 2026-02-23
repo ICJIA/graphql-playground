@@ -7,7 +7,13 @@
       <div class="flex-1">
         <EndpointSelector ref="endpointSelector" />
       </div>
-      <UButton icon="i-lucide-settings" variant="ghost" color="neutral" aria-label="Settings" @click="settingsOpen = true" />
+      <UButton
+        icon="i-lucide-settings"
+        variant="ghost"
+        color="neutral"
+        aria-label="Settings"
+        @click="settingsOpen = true"
+      />
     </header>
 
     <!-- Connected: show playground -->
@@ -26,8 +32,22 @@
           <Pane :size="50" :min-size="25">
             <div class="h-full flex flex-col bg-gray-900 relative">
               <div class="absolute top-1 right-2 z-10 flex gap-1">
-                <UButton label="CLEAR" variant="ghost" color="neutral" size="xs" class="cursor-pointer" @click="clearQuery" />
-                <UButton label="PRETTIFY" variant="ghost" color="neutral" size="xs" class="cursor-pointer" @click="prettify" />
+                <UButton
+                  label="CLEAR"
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  class="cursor-pointer"
+                  @click="clearQuery"
+                />
+                <UButton
+                  label="PRETTIFY"
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  class="cursor-pointer"
+                  @click="prettify"
+                />
               </div>
               <div class="flex-1 overflow-hidden">
                 <QueryEditor @execute="executeQuery" />
@@ -88,7 +108,6 @@
 
     <!-- Settings modal -->
     <SettingsModal v-model:open="settingsOpen" />
-
   </div>
 </template>
 
@@ -152,7 +171,13 @@ function prettify() {
 /** Dismisses all visible toasts when clicking on background areas (not buttons or inputs). */
 function dismissToasts(event: MouseEvent) {
   const target = event.target as HTMLElement
-  if (target.closest('[data-sonner-toaster]') || target.closest('button') || target.closest('a') || target.closest('input') || target.closest('select')) {
+  if (
+    target.closest('[data-sonner-toaster]') ||
+    target.closest('button') ||
+    target.closest('a') ||
+    target.closest('input') ||
+    target.closest('select')
+  ) {
     return
   }
   toast.clear()

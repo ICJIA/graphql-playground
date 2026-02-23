@@ -33,7 +33,8 @@ export const playgroundConfig = {
     name: 'ICJIA GraphQL Playground',
 
     /** Short description used in meta tags. */
-    description: 'A modern, self-hosted GraphQL IDE with schema-aware autocomplete, multi-endpoint workspaces, bearer token auth, and a built-in CORS proxy.',
+    description:
+      'A modern, self-hosted GraphQL IDE with schema-aware autocomplete, multi-endpoint workspaces, bearer token auth, and a built-in CORS proxy.',
 
     /** Semver version string. Bump when you release changes. */
     version: '1.1.0',
@@ -88,7 +89,9 @@ export const playgroundConfig = {
    */
   defaults: {
     /** Default editor font size in pixels (range: 10–24). */
-    editorFontSize: 14
+    editorFontSize: 14,
+    /** Default token storage backend: 'local' persists across sessions, 'session' clears on browser close. */
+    tokenStorage: 'local' as 'local' | 'session'
   },
 
   /**
@@ -102,10 +105,7 @@ export const playgroundConfig = {
      * Origins permitted to call the `/api/graphql-proxy` endpoint.
      * Must include the production URL and any local dev ports.
      */
-    allowedOrigins: [
-      'https://playground.icjia.app',
-      'https://icjia-graphql-playground.netlify.app'
-    ],
+    allowedOrigins: ['https://playground.icjia.app', 'https://icjia-graphql-playground.netlify.app'],
 
     // ═════════════════════════════════════════════════════════════════
     //  INTERNAL — do not change unless you understand the security

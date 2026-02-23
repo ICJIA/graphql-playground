@@ -45,7 +45,12 @@
     </template>
 
     <template #body>
-      <div v-if="schemaState.isLoading.value" class="flex items-center justify-center p-8" role="status" aria-label="Loading schema">
+      <div
+        v-if="schemaState.isLoading.value"
+        class="flex items-center justify-center p-8"
+        role="status"
+        aria-label="Loading schema"
+      >
         <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
       </div>
 

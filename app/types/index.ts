@@ -41,4 +41,6 @@ export type WorkspaceMap = Record<string, Workspace>
 export interface PlaygroundSettings {
   /** Font size in pixels used in the query and variables editors. */
   editorFontSize: number
+  /** Storage backend for bearer tokens: 'local' persists across sessions, 'session' clears on browser close. */
+  tokenStorage: 'local' | 'session'
 }

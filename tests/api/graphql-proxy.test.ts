@@ -224,10 +224,7 @@ describe('Proxy security: Header sanitization', () => {
   })
 
   it('rejects header values containing carriage return (CRLF injection)', () => {
-    const result = sanitizeHeaders(
-      { Authorization: 'Bearer token\r\nX-Injected: malicious' },
-      allowedHeaders
-    )
+    const result = sanitizeHeaders({ Authorization: 'Bearer token\r\nX-Injected: malicious' }, allowedHeaders)
     expect(result['Authorization']).toBeUndefined()
   })
 
@@ -425,7 +422,7 @@ describe('Proxy security: Shell escape for CURL copy', () => {
   })
 
   it('escapes single quotes in JSON body', () => {
-    const json = JSON.stringify({ query: "{ user(name: \"O'Brien\") { id } }" })
+    const json = JSON.stringify({ query: '{ user(name: "O\'Brien") { id } }' })
     const escaped = shellEscape(json)
     // The single quote in O'Brien is escaped
     expect(escaped).toContain("'\\''")

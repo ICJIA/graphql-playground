@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { reactive, nextTick } from 'vue'
 
+import { useSchema } from '../../app/composables/useSchema'
+import { buildClientSchema, printSchema } from 'graphql'
+
 vi.mock('graphql', () => ({
   buildClientSchema: vi.fn(),
   getIntrospectionQuery: vi.fn(() => '{ __schema { queryType { name } } }'),
   printSchema: vi.fn(() => 'type Query { hello: String }')
 }))
 
-import { useSchema } from '../../app/composables/useSchema'
-import { buildClientSchema, printSchema } from 'graphql'
-
-const flushPromises = () => new Promise<void>(resolve => setTimeout(resolve, 0))
+const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
 
 function createMockSchema(overrides: Record<string, any> = {}) {
   const typeMap: Record<string, { name: string }> = {
@@ -79,12 +79,15 @@ describe('useSchema', () => {
     await flushPromises()
     await nextTick()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      method: 'POST',
-      body: expect.objectContaining({
-        endpoint: 'https://example.com/graphql'
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.objectContaining({
+          endpoint: 'https://example.com/graphql'
+        })
       })
-    }))
+    )
     expect(buildClientSchema).toHaveBeenCalled()
     expect(schema.value).not.toBeNull()
     expect(sdl.value).toBe('type Query { hello: String }')
@@ -123,11 +126,14 @@ describe('useSchema', () => {
     await flushPromises()
     await nextTick()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        headers: { Authorization: 'Bearer my-token' }
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          headers: { Authorization: 'Bearer my-token' }
+        })
       })
-    }))
+    )
   })
 
   it('sends empty headers when no bearer token', async () => {
@@ -138,11 +144,14 @@ describe('useSchema', () => {
     await flushPromises()
     await nextTick()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        headers: {}
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          headers: {}
+        })
       })
-    }))
+    )
   })
 
   it('clears schema when endpoint changes to empty', async () => {
@@ -212,7 +221,12 @@ describe('useSchema', () => {
 
     // Trigger another fetch — schema should be cleared during fetch
     let fetchResolve!: (value: any) => void
-    ;(globalThis.$fetch as any).mockImplementation(() => new Promise(r => { fetchResolve = r }))
+    ;(globalThis.$fetch as any).mockImplementation(
+      () =>
+        new Promise((r) => {
+          fetchResolve = r
+        })
+    )
 
     const fetchPromise = fetchSchema()
     // During loading, previous schema should be cleared
@@ -237,7 +251,12 @@ describe('useSchema', () => {
 
   it('does not set state when endpoint changes during fetch', async () => {
     let fetchResolve!: (value: any) => void
-    ;(globalThis.$fetch as any).mockImplementation(() => new Promise(r => { fetchResolve = r }))
+    ;(globalThis.$fetch as any).mockImplementation(
+      () =>
+        new Promise((r) => {
+          fetchResolve = r
+        })
+    )
     setupEndpoint('https://first.com/graphql')
 
     const { introspectionDisabled } = useSchema()
@@ -322,10 +341,12 @@ describe('useSchema', () => {
 
       expect(globalThis.$fetch).toHaveBeenCalledTimes(2)
       expect(introspectionDisabled.value).toBe(true)
-      expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({
-        title: 'Introspection unavailable',
-        color: 'warning'
-      }))
+      expect(mockToastAdd).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Introspection unavailable',
+          color: 'warning'
+        })
+      )
     })
 
     it('does not retry if endpoint changed during delay', async () => {

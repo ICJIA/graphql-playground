@@ -86,11 +86,9 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(mockUpdateTab).toHaveBeenCalledWith(
-      'https://example.com/graphql',
-      'tab-1',
-      { results: JSON.stringify(mockResult, null, 2) }
-    )
+    expect(mockUpdateTab).toHaveBeenCalledWith('https://example.com/graphql', 'tab-1', {
+      results: JSON.stringify(mockResult, null, 2)
+    })
   })
 
   it('records history entry on success', async () => {
@@ -124,11 +122,14 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        variables: { id: 1, name: 'test' }
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          variables: { id: 1, name: 'test' }
+        })
       })
-    }))
+    )
   })
 
   it('shows error toast for invalid JSON variables', async () => {
@@ -141,10 +142,12 @@ describe('useGraphQL', () => {
     const { executeQuery, isExecuting } = useGraphQL()
     await executeQuery()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({
-      title: 'Invalid JSON in variables panel',
-      color: 'error'
-    }))
+    expect(mockToastAdd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Invalid JSON in variables panel',
+        color: 'error'
+      })
+    )
     expect(globalThis.$fetch).not.toHaveBeenCalled()
     expect(isExecuting.value).toBe(false)
   })
@@ -154,11 +157,14 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        variables: undefined
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          variables: undefined
+        })
       })
-    }))
+    )
   })
 
   it('skips variable parsing when variables is whitespace', async () => {
@@ -172,11 +178,14 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        variables: undefined
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          variables: undefined
+        })
       })
-    }))
+    )
   })
 
   it('adds Authorization header when bearer token exists', async () => {
@@ -188,11 +197,14 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        headers: { Authorization: 'Bearer my-secret-token' }
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          headers: { Authorization: 'Bearer my-secret-token' }
+        })
       })
-    }))
+    )
   })
 
   it('sends empty headers when no bearer token', async () => {
@@ -201,11 +213,14 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(globalThis.$fetch).toHaveBeenCalledWith('/api/graphql-proxy', expect.objectContaining({
-      body: expect.objectContaining({
-        headers: {}
+    expect(globalThis.$fetch).toHaveBeenCalledWith(
+      '/api/graphql-proxy',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          headers: {}
+        })
       })
-    }))
+    )
   })
 
   it('handles fetch error with error.message', async () => {
@@ -214,11 +229,9 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(mockUpdateTab).toHaveBeenCalledWith(
-      'https://example.com/graphql',
-      'tab-1',
-      { results: JSON.stringify({ error: 'Network error' }, null, 2) }
-    )
+    expect(mockUpdateTab).toHaveBeenCalledWith('https://example.com/graphql', 'tab-1', {
+      results: JSON.stringify({ error: 'Network error' }, null, 2)
+    })
   })
 
   it('handles fetch error with error.data.message', async () => {
@@ -229,11 +242,9 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(mockUpdateTab).toHaveBeenCalledWith(
-      'https://example.com/graphql',
-      'tab-1',
-      { results: JSON.stringify({ error: 'Missing query field' }, null, 2) }
-    )
+    expect(mockUpdateTab).toHaveBeenCalledWith('https://example.com/graphql', 'tab-1', {
+      results: JSON.stringify({ error: 'Missing query field' }, null, 2)
+    })
   })
 
   it('shows error toast on failure', async () => {
@@ -242,10 +253,12 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({
-      title: 'Query failed',
-      color: 'error'
-    }))
+    expect(mockToastAdd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Query failed',
+        color: 'error'
+      })
+    )
   })
 
   it('falls back to "Request failed" when error has no message', async () => {
@@ -254,16 +267,19 @@ describe('useGraphQL', () => {
     const { executeQuery } = useGraphQL()
     await executeQuery()
 
-    expect(mockUpdateTab).toHaveBeenCalledWith(
-      'https://example.com/graphql',
-      'tab-1',
-      { results: JSON.stringify({ error: 'Request failed' }, null, 2) }
-    )
+    expect(mockUpdateTab).toHaveBeenCalledWith('https://example.com/graphql', 'tab-1', {
+      results: JSON.stringify({ error: 'Request failed' }, null, 2)
+    })
   })
 
   it('sets isExecuting true during execution', async () => {
     let resolve!: (value: any) => void
-    ;(globalThis.$fetch as any).mockImplementation(() => new Promise(r => { resolve = r }))
+    ;(globalThis.$fetch as any).mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolve = r
+        })
+    )
 
     const { executeQuery, isExecuting } = useGraphQL()
     const promise = executeQuery()

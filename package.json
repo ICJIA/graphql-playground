@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt build && node scripts/generate-csp.mjs",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -29,6 +29,10 @@
     "tailwindcss": "^4.2.0",
     "vue": "^3.5.28",
     "vue-router": "^4.6.4"
+  },
+  "resolutions": {
+    "minimatch": ">=10.2.1",
+    "ajv": "~6.14.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.1",

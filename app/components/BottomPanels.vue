@@ -47,6 +47,20 @@
             @update:model-value="onTokenChange"
           />
         </div>
+        <p
+          v-if="endpointsStore.activeEndpointData?.bearerToken"
+          class="text-xs text-amber-500/80 flex items-center gap-1"
+        >
+          <UIcon name="i-lucide-shield-alert" class="shrink-0" />
+          <span v-if="settingsStore.settings.tokenStorage === 'session'">
+            Token stored in session memory only — cleared when you close this tab.
+          </span>
+          <span v-else>
+            Token stored in browser localStorage. Use
+            <em>session-only</em>
+            storage in Settings for sensitive tokens.
+          </span>
+        </p>
       </div>
     </div>
   </div>
@@ -55,6 +69,7 @@
 <script setup lang="ts">
 const endpointsStore = useEndpointsStore()
 const workspaceStore = useWorkspaceStore()
+const settingsStore = useSettingsStore()
 
 const activePanel = ref<'variables' | 'headers'>('variables')
 const isOpen = ref(false)

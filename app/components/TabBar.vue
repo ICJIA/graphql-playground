@@ -16,7 +16,9 @@
           "
           @click="workspaceStore.setActiveTab(endpointsStore.activeEndpoint, tab.id)"
           @dblclick.prevent="startRenaming(tab.id, tab.name)"
-          @keydown.delete="workspaceStore.currentTabs.length > 1 && workspaceStore.closeTab(endpointsStore.activeEndpoint, tab.id)"
+          @keydown.delete="
+            workspaceStore.currentTabs.length > 1 && workspaceStore.closeTab(endpointsStore.activeEndpoint, tab.id)
+          "
         >
           <span class="max-w-32 truncate">{{ tab.name }}</span>
           <span
