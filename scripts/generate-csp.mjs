@@ -19,8 +19,23 @@ const HTML_FILE = resolve(OUTPUT_DIR, 'index.html')
 const HEADERS_FILE = resolve(OUTPUT_DIR, '_headers')
 
 if (!existsSync(HTML_FILE)) {
-  console.error('[generate-csp] No index.html found at', HTML_FILE)
-  process.exit(1)
+  // SSR builds (e.g. Netlify preset) have no static index.html.
+  // Write a safe fallback CSP without script hashes and exit cleanly.
+  console.log('[generate-csp] No index.html found (SSR build) — writing fallback CSP')
+  const fallbackCsp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "connect-src 'self'",
+    "img-src 'self' data:",
+    "font-src 'self' data:",
+    "frame-ancestors 'none'"
+  ].join('; ')
+  if (existsSync(OUTPUT_DIR)) {
+    writeFileSync(resolve(OUTPUT_DIR, '_headers'), `/*\n  Content-Security-Policy: ${fallbackCsp}\n`, 'utf-8')
+    console.log('[generate-csp] Wrote fallback _headers to', OUTPUT_DIR)
+  }
+  process.exit(0)
 }
 
 const html = readFileSync(HTML_FILE, 'utf-8')
