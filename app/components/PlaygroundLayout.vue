@@ -48,6 +48,15 @@
                   class="cursor-pointer btn-link-green"
                   @click="prettify"
                 />
+                <UButton
+                  :icon="copiedQuery ? 'i-lucide-check' : 'i-lucide-clipboard-copy'"
+                  :label="copiedQuery ? 'COPIED' : 'COPY'"
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  class="cursor-pointer btn-link-green"
+                  @click="copyQuery"
+                />
               </div>
               <div class="flex-1 overflow-hidden">
                 <QueryEditor @execute="executeQuery" />
@@ -197,6 +206,18 @@ function prettify() {
   } catch {
     toast.add({ title: 'Could not prettify — check query syntax', icon: 'i-lucide-x-circle', color: 'error' })
   }
+}
+
+/** Copies the active tab's query to the clipboard with a brief check icon feedback. */
+const copiedQuery = ref(false)
+function copyQuery() {
+  const tab = workspaceStore.activeTab
+  if (!tab?.query) return
+  navigator.clipboard.writeText(tab.query)
+  copiedQuery.value = true
+  setTimeout(() => {
+    copiedQuery.value = false
+  }, 1500)
 }
 
 /** Dismisses all visible toasts when clicking on background areas (not buttons or inputs). */
