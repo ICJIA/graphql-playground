@@ -17,7 +17,7 @@
     </header>
 
     <!-- Connected: show playground -->
-    <main v-if="endpointsStore.activeEndpoint" class="flex-1 flex flex-col overflow-hidden">
+    <main v-if="endpointsStore.activeEndpoint && !forceQuickstart" class="flex-1 flex flex-col overflow-hidden">
       <!-- Tab bar + toolbar -->
       <div class="flex items-center justify-between px-4 py-1 border-b border-gray-800">
         <div class="flex-1">
@@ -37,7 +37,7 @@
                   variant="ghost"
                   color="neutral"
                   size="xs"
-                  class="cursor-pointer"
+                  class="cursor-pointer btn-link-green"
                   @click="clearQuery"
                 />
                 <UButton
@@ -45,7 +45,7 @@
                   variant="ghost"
                   color="neutral"
                   size="xs"
-                  class="cursor-pointer"
+                  class="cursor-pointer btn-link-green"
                   @click="prettify"
                 />
               </div>
@@ -63,22 +63,29 @@
 
         <!-- Execute button overlay on the splitter -->
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <UButton
-            icon="i-lucide-play"
-            color="primary"
-            variant="solid"
-            size="xl"
-            class="rounded-full shadow-lg"
-            aria-label="Execute query"
-            :loading="isExecuting"
-            @click="executeQuery"
-          />
+          <div class="relative">
+            <span
+              v-if="!isExecuting"
+              class="absolute inset-0 rounded-full bg-[#00DC82]/40 animate-ping-slow"
+              aria-hidden="true"
+            />
+            <button
+              class="relative flex items-center justify-center w-14 h-14 rounded-full bg-[#00DC82] hover:bg-[#33E8A0] text-gray-950 shadow-lg ring-2 ring-[#00DC82]/60 transition-colors cursor-pointer"
+              :class="{ 'animate-breathe': !isExecuting }"
+              aria-label="Execute query"
+              :disabled="isExecuting"
+              @click="executeQuery"
+            >
+              <UIcon v-if="!isExecuting" name="i-lucide-play" class="text-2xl" />
+              <UIcon v-else name="i-lucide-loader-2" class="text-2xl animate-spin" />
+            </button>
+          </div>
         </div>
       </div>
       <!-- Status bar -->
       <div class="px-4 py-1 border-t border-gray-800 flex items-center justify-between">
         <button
-          class="text-xs text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1 px-2 py-0.5 rounded bg-gray-800/60 hover:bg-gray-700/60 cursor-pointer"
+          class="text-xs text-[#00DC82] hover:text-[#33E8A0] transition-colors flex items-center gap-1 px-2 py-0.5 rounded bg-gray-800/60 hover:bg-gray-700/60 cursor-pointer"
           @click="showQuickstart"
         >
           <UIcon name="i-lucide-rocket" class="text-xs" />
@@ -88,7 +95,7 @@
           :href="config.app.repository"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-xs text-gray-400 hover:text-gray-300 transition-colors flex items-center gap-1 cursor-pointer"
+          class="text-xs text-[#00DC82] hover:text-[#33E8A0] transition-colors flex items-center gap-1 cursor-pointer"
         >
           <UIcon name="i-lucide-github" class="text-sm" />
           GitHub
@@ -96,9 +103,9 @@
       </div>
     </main>
 
-    <!-- Not connected: show welcome guide -->
+    <!-- Not connected or forced quickstart: show welcome guide -->
     <main v-else class="flex-1 overflow-hidden">
-      <WelcomeGuide @connect="onQuickConnect" @manual="onManualConnect" />
+      <WelcomeGuide @connect="onQuickConnectFromGuide" @manual="onManualConnectFromGuide" />
     </main>
 
     <!-- Schema sidebar toggle -->
@@ -124,15 +131,39 @@ const toast = useToast()
 
 const settingsOpen = ref(false)
 const endpointSelector = ref()
+const forceQuickstart = ref(false)
+
+// Check for ?quickstart=true URL parameter — forces the welcome guide to show
+onMounted(() => {
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('quickstart') === 'true') {
+    forceQuickstart.value = true
+    // Clean the param from the URL so a refresh won't re-trigger
+    params.delete('quickstart')
+    const clean = params.toString()
+    const newUrl = window.location.pathname + (clean ? `?${clean}` : '') + window.location.hash
+    window.history.replaceState({}, '', newUrl)
+  }
+})
 
 // Provide schema state so QueryEditor and SchemaSidebar share one instance
 const schemaState = useSchema()
 provide('schemaState', schemaState)
 
-/** Handles quick-connect from the welcome guide: connects to the endpoint and optionally pre-populates the first tab with an example query. */
 /** Focuses the endpoint URL input for manual entry. */
 function onManualConnect() {
   endpointSelector.value?.focusInput()
+}
+
+/** Wrappers that clear forceQuickstart before delegating to the real handlers. */
+function onManualConnectFromGuide() {
+  forceQuickstart.value = false
+  onManualConnect()
+}
+
+async function onQuickConnectFromGuide(url: string, exampleQuery?: string) {
+  forceQuickstart.value = false
+  await onQuickConnect(url, exampleQuery)
 }
 
 /** Handles quick-connect from the welcome guide: connects to the endpoint and optionally pre-populates the first tab with an example query. */

@@ -1,8 +1,8 @@
 <!-- app/components/ToolbarActions.vue -->
 <template>
   <div class="flex items-center gap-1">
-    <UButton label="HISTORY" variant="ghost" color="neutral" size="xs" @click="historyOpen = true" />
-    <UButton label="COPY CURL" variant="ghost" color="neutral" size="xs" @click="copyCurl" />
+    <UButton label="HISTORY" variant="ghost" color="neutral" size="xs" class="btn-link-green" @click="historyOpen = true" />
+    <UButton label="COPY CURL" variant="ghost" color="neutral" size="xs" class="btn-link-green" @click="copyCurl" />
 
     <HistoryModal v-model:open="historyOpen" @select="onHistorySelect" />
   </div>

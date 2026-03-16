@@ -20,6 +20,136 @@ body {
   color: #9ca3af !important;
 }
 
+/*
+ * High-contrast Nuxt-green (#00DC82) for ghost/link buttons.
+ * WCAG AA: #00DC82 on #030712 = 10.2:1 contrast ratio.
+ * On hover, keep green text and force a dark hover background so
+ * contrast stays above 4.5:1 regardless of Nuxt UI's theme tokens.
+ */
+.btn-link-green {
+  color: #00DC82 !important;
+}
+.btn-link-green:hover {
+  color: #33E8A0 !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/*
+ * Global dark-mode safety net for Nuxt UI interactive hover states.
+ * Ensures ghost/neutral buttons never flash a light hover background.
+ * #00DC82 on #1a2332 ≈ 7.5:1 — well above WCAG AA 4.5:1.
+ */
+[data-slot="content"] [role="menuitem"]:hover,
+[data-slot="content"] [role="menuitem"][data-highlighted],
+[data-slot="content"] [role="option"]:hover,
+[data-slot="content"] [role="option"][data-highlighted] {
+  background-color: #1f2937 !important;
+  color: #f3f4f6 !important;
+}
+
+/*
+ * Force dropdown/popover containers to dark backgrounds.
+ * Prevents white flash on Nuxt UI UDropdownMenu, USelectMenu, etc.
+ */
+[data-slot="content"][data-state] {
+  background-color: #111827 !important;
+  color: #f3f4f6 !important;
+}
+
+/*
+ * Force Nuxt UI slideover (schema sidebar) to dark bg with white text.
+ * Slideover content is identified by [data-side] on [data-slot="content"].
+ */
+[data-slot="content"][data-side] {
+  background-color: #0a0f1a !important;
+  color: #f3f4f6 !important;
+}
+
+[data-slot="content"][data-side] [data-slot="header"] {
+  background-color: #0a0f1a !important;
+  border-bottom: 1px solid #1f2937;
+}
+
+[data-slot="content"][data-side] [data-slot="title"] {
+  color: #ffffff !important;
+}
+
+[data-slot="content"][data-side] [data-slot="description"] {
+  color: #9ca3af !important;
+}
+
+[data-slot="content"][data-side] [data-slot="body"] {
+  background-color: #0a0f1a !important;
+  color: #f3f4f6 !important;
+}
+
+[data-slot="content"][data-side] [data-slot="close"] {
+  color: #d1d5db !important;
+}
+
+/*
+ * Force Nuxt UI modals to dark bg with high-contrast text.
+ * Modal content uses [data-slot="content"] WITHOUT [data-side].
+ */
+[data-slot="content"]:not([data-side]) {
+  background-color: #0a0f1a !important;
+  color: #f3f4f6 !important;
+}
+
+[data-slot="content"]:not([data-side]) [data-slot="header"] {
+  background-color: #0a0f1a !important;
+  border-bottom: 1px solid #1f2937;
+}
+
+[data-slot="content"]:not([data-side]) [data-slot="title"] {
+  color: #ffffff !important;
+}
+
+[data-slot="content"]:not([data-side]) [data-slot="description"] {
+  color: #9ca3af !important;
+}
+
+[data-slot="content"]:not([data-side]) [data-slot="body"] {
+  background-color: #0a0f1a !important;
+  color: #f3f4f6 !important;
+}
+
+[data-slot="content"]:not([data-side]) [data-slot="close"] {
+  color: #d1d5db !important;
+}
+
+/* Gentle breathing glow on the play button itself */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(0, 220, 130, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px rgba(0, 220, 130, 0.6);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 2.5s ease-in-out infinite;
+}
+
+/* Expanding ring pulse behind the play button */
+@keyframes ping-slow {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  75%, 100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

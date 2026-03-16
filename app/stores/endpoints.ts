@@ -134,14 +134,20 @@ export const useEndpointsStore = defineStore('endpoints', {
           if (ep.bearerToken) sessionTokens[ep.url] = ep.bearerToken
           return { ...ep, bearerToken: '' }
         })
-        localStorage.setItem(STORAGE_KEY_ENDPOINTS, JSON.stringify(stripped))
+        safePersist(STORAGE_KEY_ENDPOINTS, JSON.stringify(stripped))
         sessionStorage.setItem(STORAGE_KEY_SESSION_TOKENS, JSON.stringify(sessionTokens))
       } else {
-        localStorage.setItem(STORAGE_KEY_ENDPOINTS, JSON.stringify(this.endpoints))
+        safePersist(STORAGE_KEY_ENDPOINTS, JSON.stringify(this.endpoints))
         // Clean up any stale session tokens
         sessionStorage.removeItem(STORAGE_KEY_SESSION_TOKENS)
       }
-      localStorage.setItem(STORAGE_KEY_ACTIVE, this.activeEndpoint)
+      safePersist(STORAGE_KEY_ACTIVE, this.activeEndpoint)
+    },
+
+    /** Reloads state from localStorage (used for cross-tab synchronization). */
+    syncFromStorage() {
+      this.endpoints = loadEndpoints()
+      this.activeEndpoint = loadActiveEndpoint()
     }
   }
 })

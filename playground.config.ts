@@ -66,13 +66,14 @@ export const playgroundConfig = {
   exampleEndpoints: [
     {
       /** Full URL of the GraphQL endpoint (must be HTTPS and contain "graphql" in the path). */
-      url: 'https://countries.trevorblades.com/graphql',
+      url: 'https://v2.hub.icjia-api.cloud/graphql',
       /** Short label for the button. */
-      label: 'Countries API',
+      label: 'ICJIA ResearchHub',
       /** Description shown below the URL. Include "no auth" if public. */
-      description: 'Public API for country data — no auth required',
+      description: 'ICJIA Research Hub — articles, publications, and datasets — no auth required',
       /** Sample query pre-loaded when the user clicks this endpoint. */
-      exampleQuery: '{\n  countries {\n    name\n    capital\n    emoji\n    currency\n  }\n}'
+      exampleQuery:
+        '{\n  articles(\n    pagination: { limit: 50 }\n    sort: "date:desc"\n  ) {\n    title\n    abstract\n    date\n    splash {\n      url\n    }\n  }\n}'
     },
     {
       url: 'https://rickandmortyapi.com/graphql',

@@ -289,7 +289,7 @@ describe('useSchema', () => {
     expect(globalThis.$fetch).not.toHaveBeenCalled()
   })
 
-  describe('retry behavior', () => {
+  describe('retry behavior (exponential backoff)', () => {
     beforeEach(() => {
       vi.useFakeTimers()
     })
@@ -298,7 +298,7 @@ describe('useSchema', () => {
       vi.useRealTimers()
     })
 
-    it('retries once on transient failure and succeeds', async () => {
+    it('retries with exponential backoff and succeeds on second attempt', async () => {
       ;(globalThis.$fetch as any)
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({ data: { __schema: { types: [] } } })
@@ -310,7 +310,7 @@ describe('useSchema', () => {
       await vi.advanceTimersByTimeAsync(0)
       await nextTick()
 
-      // Retry after 1s delay
+      // First retry after 1s delay
       await vi.advanceTimersByTimeAsync(1000)
       await nextTick()
       await vi.advanceTimersByTimeAsync(0)
@@ -321,10 +321,12 @@ describe('useSchema', () => {
       expect(introspectionDisabled.value).toBe(false)
     })
 
-    it('shows toast after retry also fails', async () => {
+    it('retries up to 3 times with increasing delays (1s, 2s, 4s)', async () => {
       ;(globalThis.$fetch as any)
-        .mockRejectedValueOnce(new Error('First failure'))
-        .mockRejectedValueOnce(new Error('Second failure'))
+        .mockRejectedValueOnce(new Error('Fail 1'))
+        .mockRejectedValueOnce(new Error('Fail 2'))
+        .mockRejectedValueOnce(new Error('Fail 3'))
+        .mockRejectedValueOnce(new Error('Fail 4'))
 
       setupEndpoint()
       const { introspectionDisabled } = useSchema()
@@ -333,13 +335,26 @@ describe('useSchema', () => {
       await vi.advanceTimersByTimeAsync(0)
       await nextTick()
 
-      // Retry after 1s
+      // Retry 1 after 1s
       await vi.advanceTimersByTimeAsync(1000)
       await nextTick()
       await vi.advanceTimersByTimeAsync(0)
       await nextTick()
 
-      expect(globalThis.$fetch).toHaveBeenCalledTimes(2)
+      // Retry 2 after 2s
+      await vi.advanceTimersByTimeAsync(2000)
+      await nextTick()
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      // Retry 3 after 4s
+      await vi.advanceTimersByTimeAsync(4000)
+      await nextTick()
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      // 1 initial + 3 retries = 4 total
+      expect(globalThis.$fetch).toHaveBeenCalledTimes(4)
       expect(introspectionDisabled.value).toBe(true)
       expect(mockToastAdd).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -347,6 +362,44 @@ describe('useSchema', () => {
           color: 'warning'
         })
       )
+    })
+
+    it('succeeds on third retry after two failures', async () => {
+      ;(globalThis.$fetch as any)
+        .mockRejectedValueOnce(new Error('Fail 1'))
+        .mockRejectedValueOnce(new Error('Fail 2'))
+        .mockRejectedValueOnce(new Error('Fail 3'))
+        .mockResolvedValueOnce({ data: { __schema: { types: [] } } })
+
+      setupEndpoint()
+      const { schema, introspectionDisabled } = useSchema()
+
+      // First attempt fails
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      // Retry 1 after 1s — fails
+      await vi.advanceTimersByTimeAsync(1000)
+      await nextTick()
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      // Retry 2 after 2s — fails
+      await vi.advanceTimersByTimeAsync(2000)
+      await nextTick()
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      // Retry 3 after 4s — succeeds
+      await vi.advanceTimersByTimeAsync(4000)
+      await nextTick()
+      await vi.advanceTimersByTimeAsync(0)
+      await nextTick()
+
+      expect(globalThis.$fetch).toHaveBeenCalledTimes(4)
+      expect(schema.value).not.toBeNull()
+      expect(introspectionDisabled.value).toBe(false)
+      expect(mockToastAdd).not.toHaveBeenCalled()
     })
 
     it('does not retry if endpoint changed during delay', async () => {

@@ -44,7 +44,12 @@ export const useSettingsStore = defineStore('settings', {
 
     /** Persists the current settings to localStorage. */
     persist() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings))
+      safePersist(STORAGE_KEY, JSON.stringify(this.settings))
+    },
+
+    /** Reloads state from localStorage (used for cross-tab synchronization). */
+    syncFromStorage() {
+      this.settings = loadSettings()
     }
   }
 })

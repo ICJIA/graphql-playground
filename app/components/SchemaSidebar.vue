@@ -1,9 +1,9 @@
 <!-- app/components/SchemaSidebar.vue -->
 <template>
   <!-- Toggle buttons on right edge -->
-  <div class="fixed right-0 top-1/2 -translate-y-1/2 z-20 flex flex-col">
+  <div class="fixed right-0 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
     <button
-      class="px-1 py-3 bg-gray-800 text-gray-400 hover:text-white text-xs tracking-widest border border-gray-700 rounded-l"
+      class="px-1 py-3 bg-gray-800 text-[#00DC82] hover:text-[#33E8A0] text-xs tracking-widest border border-gray-700 rounded-l"
       style="writing-mode: vertical-lr"
       aria-label="DOCS — schema documentation"
       @click="openPanel('docs')"
@@ -11,7 +11,7 @@
       DOCS
     </button>
     <button
-      class="px-1 py-3 bg-gray-800 text-gray-400 hover:text-white text-xs tracking-widest border border-gray-700 border-t-0 rounded-l"
+      class="px-1 py-3 bg-gray-800 text-[#00DC82] hover:text-[#33E8A0] text-xs tracking-widest border border-gray-700 rounded-l"
       style="writing-mode: vertical-lr"
       aria-label="SCHEMA SDL view"
       @click="openPanel('schema')"
@@ -54,7 +54,7 @@
         <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
       </div>
 
-      <div v-else-if="schemaState.introspectionDisabled.value" class="p-4 text-gray-400">
+      <div v-else-if="schemaState.introspectionDisabled.value" class="p-4 text-gray-300">
         Introspection is disabled on this endpoint. Schema documentation is not available.
       </div>
 
@@ -83,6 +83,7 @@
             variant="ghost"
             color="neutral"
             size="sm"
+            class="btn-link-green"
             title="Download docs as JSON (for LLMs)"
             aria-label="Download docs as JSON"
             @click="downloadDocsJson"
@@ -110,7 +111,7 @@
         <!-- Types section -->
         <div>
           <button
-            class="flex items-center gap-1 text-sm font-semibold text-gray-300 w-full py-1"
+            class="flex items-center gap-1 text-sm font-semibold text-white w-full py-1"
             :aria-expanded="typesExpanded"
             @click="typesExpanded = !typesExpanded"
           >
@@ -132,10 +133,11 @@
             variant="ghost"
             color="neutral"
             size="xs"
+            class="btn-link-green"
             @click="downloadSdl"
           />
         </div>
-        <pre class="text-xs text-gray-300 font-mono whitespace-pre-wrap">{{ schemaState.sdl.value }}</pre>
+        <pre class="text-xs text-gray-100 font-mono whitespace-pre-wrap">{{ schemaState.sdl.value }}</pre>
       </div>
     </template>
   </USlideover>

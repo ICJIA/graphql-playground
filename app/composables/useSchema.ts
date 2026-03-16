@@ -105,6 +105,9 @@ export function useSchema() {
       headers['Authorization'] = `Bearer ${endpoint.bearerToken}`
     }
 
+    const MAX_RETRIES = 3
+    const BASE_DELAY = 1000
+
     try {
       const success = await attemptIntrospection(fetchUrl, headers, abortController)
       if (!success && endpointsStore.activeEndpoint === fetchUrl) {
@@ -115,21 +118,30 @@ export function useSchema() {
       if ((error as any)?.name === 'AbortError') return
       if (endpointsStore.activeEndpoint !== fetchUrl) return
 
-      // Retry once after a short delay for transient failures
-      try {
-        await new Promise((r) => setTimeout(r, 1000))
-        // Re-check: endpoint may have changed during the delay
+      // Retry with exponential backoff (1s, 2s, 4s)
+      let retrySuccess = false
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        const delay = BASE_DELAY * Math.pow(2, attempt - 1)
+        await new Promise((r) => setTimeout(r, delay))
+
+        // Bail out if endpoint changed or request was aborted during the delay
         if (endpointsStore.activeEndpoint !== fetchUrl) return
         if (abortController.signal.aborted) return
 
-        const success = await attemptIntrospection(fetchUrl, headers, abortController)
-        if (!success && endpointsStore.activeEndpoint === fetchUrl) {
-          introspectionDisabled.value = true
+        try {
+          const success = await attemptIntrospection(fetchUrl, headers, abortController)
+          if (success) {
+            retrySuccess = true
+            break
+          }
+        } catch (retryError: unknown) {
+          if ((retryError as any)?.name === 'AbortError') return
+          if (endpointsStore.activeEndpoint !== fetchUrl) return
+          // Continue to next retry attempt
         }
-      } catch (retryError: unknown) {
-        if ((retryError as any)?.name === 'AbortError') return
-        if (endpointsStore.activeEndpoint !== fetchUrl) return
+      }
 
+      if (!retrySuccess && endpointsStore.activeEndpoint === fetchUrl) {
         introspectionDisabled.value = true
         toast.add({
           title: 'Introspection unavailable',

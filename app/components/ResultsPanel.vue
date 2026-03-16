@@ -9,6 +9,7 @@
         variant="ghost"
         color="neutral"
         size="xs"
+        class="btn-link-green"
         @click="copyResults"
       />
       <UDropdownMenu :items="exportItems">
@@ -19,6 +20,7 @@
           variant="ghost"
           color="neutral"
           size="xs"
+          class="btn-link-green"
         />
       </UDropdownMenu>
     </div>

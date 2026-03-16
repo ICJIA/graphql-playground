@@ -133,7 +133,7 @@
               :href="config.app.repository"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 text-primary-500 hover:underline"
+              class="inline-flex items-center gap-1 text-[#00DC82] hover:text-[#33E8A0] hover:underline"
             >
               <UIcon name="i-lucide-github" class="text-sm" />
               GitHub Repository
@@ -142,7 +142,7 @@
               :href="config.app.liveUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 text-primary-500 hover:underline"
+              class="inline-flex items-center gap-1 text-[#00DC82] hover:text-[#33E8A0] hover:underline"
             >
               <UIcon name="i-lucide-external-link" class="text-sm" />
               Live Site

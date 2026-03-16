@@ -22,6 +22,19 @@ globalThis.onUnmounted = onUnmounted as any
 // Mock $fetch (Nuxt's built-in fetch wrapper)
 globalThis.$fetch = vi.fn() as any
 
+// Make safePersist available as a global (Nuxt auto-imports from utils/)
+globalThis.safePersist = ((key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value)
+    return true
+  } catch {
+    return false
+  }
+}) as any
+
+// Make syncHistoryFromStorage available as a global (Nuxt auto-imports from composables/)
+globalThis.syncHistoryFromStorage = (() => {}) as any
+
 // Mock useToast (from Nuxt UI)
 globalThis.useToast = (() => ({
   add: vi.fn()

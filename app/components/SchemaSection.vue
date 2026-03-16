@@ -2,7 +2,7 @@
 <template>
   <div>
     <button
-      class="flex items-center gap-1 text-sm font-semibold text-gray-300 w-full py-1"
+      class="flex items-center gap-1 text-sm font-semibold text-white w-full py-1"
       :aria-expanded="expanded"
       @click="expanded = !expanded"
     >

@@ -143,7 +143,12 @@ export const useWorkspaceStore = defineStore('workspace', {
 
     /** Persists all workspaces to localStorage. */
     persist() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.workspaces))
+      safePersist(STORAGE_KEY, JSON.stringify(this.workspaces))
+    },
+
+    /** Reloads state from localStorage (used for cross-tab synchronization). */
+    syncFromStorage() {
+      this.workspaces = loadWorkspaces()
     }
   }
 })

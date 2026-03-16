@@ -44,7 +44,7 @@ export function useHistory() {
     if (history.value.length > MAX_ENTRIES) {
       history.value = history.value.slice(0, MAX_ENTRIES)
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history.value))
+    safePersist(STORAGE_KEY, JSON.stringify(history.value))
   }
 
   /**
@@ -62,4 +62,9 @@ export function useHistory() {
   }
 
   return { history, addEntry, getEntriesForEndpoint, clearHistory }
+}
+
+/** Reloads history from localStorage (used for cross-tab synchronization). */
+export function syncHistoryFromStorage() {
+  history.value = loadHistory()
 }
