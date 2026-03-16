@@ -2,7 +2,7 @@
 
 A modern, configurable GraphQL playground built with Nuxt 4, Nuxt UI 4, and CodeMirror 6. Works with **any public GraphQL endpoint** and supports **bearer token authentication** for secured APIs. Solves the CORS problem with a built-in serverless proxy.
 
-**Live:** [https://playground.icjia.app](https://playground.icjia.app)
+**Live:** [https://playground.icjia.app](https://playground.icjia.app) | [Changelog](CHANGELOG.md)
 
 ![ICJIA GraphQL Playground](public/og-image.png)
 
@@ -106,7 +106,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 | Quick-start guide | No | Yes — example endpoints and keyboard shortcuts on launch, re-openable via status bar |
 | Modern UI framework | Custom CSS | Nuxt UI 4 component library |
 | Theme | Legacy dark theme | Modern dark theme with Tailwind CSS v4 |
-| Test suite | None | 251 tests (unit, component, API) via Vitest |
+| Test suite | None | 262 tests (unit, component, API) via Vitest |
 
 ---
 
@@ -124,6 +124,7 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 - **Per-endpoint workspaces** — each endpoint has its own query tabs, variables, and bearer token
 - **Multi-tab queries** — open multiple query tabs per endpoint, rename them, close them
 - **Prettify** — auto-format your query with one click
+- **Copy query** — copy the current query to clipboard with visual feedback
 - **Query variables** — JSON variables panel below the editor
 
 **Results & Export**
@@ -148,8 +149,9 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 **Settings & Persistence**
 - **Query history** — browse and re-run previously executed queries across all endpoints, with endpoint info shown for each entry
 - **Settings panel** — adjust editor font size, export/import data, clear all saved data (with confirmation)
-- **Quick-start guide** — example endpoints and usage instructions shown on first launch, re-openable anytime via the Quickstart link in the status bar
-- **Full persistence** — everything is saved to `localStorage` and restored when you return
+- **Quick-start guide** — example endpoints and usage instructions shown on first launch, re-openable anytime via the Quickstart link in the status bar. Append `?quickstart=true` to the URL to force-show for demos.
+- **Full persistence** — everything is saved to `localStorage` and restored when you return. Handles quota errors gracefully with user notification.
+- **Cross-tab sync** — changes in one browser tab (endpoints, workspaces, settings, history) automatically sync to other open tabs
 - **Export / Import** — export all saved data as JSON, import on another machine
 - **Dark theme** — optimized for extended use
 
@@ -162,9 +164,11 @@ The default GraphQL Playground (Prisma v1.7) and GraphiQL ship embedded with you
 Visit [https://playground.icjia.app](https://playground.icjia.app) and enter a GraphQL endpoint URL to get started. Try one of these public endpoints:
 
 ```
-https://countries.trevorblades.com/graphql
+https://v2.hub.icjia-api.cloud/graphql
 https://rickandmortyapi.com/graphql
 ```
+
+**Tip:** Append `?quickstart=true` to the URL to force-show the welcome guide, even if you've used the playground before.
 
 ### Run locally
 
@@ -250,7 +254,7 @@ The build outputs to `.output/` and includes both the static SPA and the Netlify
 
 ### Run tests
 
-The project includes 251 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
+The project includes 262 tests across unit, component, and API categories using [Vitest](https://vitest.dev/) 4.x.
 
 ```bash
 # Run all tests
@@ -265,7 +269,8 @@ yarn test:watch
 | `tests/unit/playground-config.test.ts` | 17 | Config structure, URLs, security settings, storage keys, defaults, example queries |
 | `tests/unit/stores.test.ts` | 52 | Real Pinia store instances — endpoints (add, remove, sort, persist, bearer tokens), workspaces (tabs, auto-naming, close protection, getters), settings (update, reset, defaults) |
 | `tests/unit/useGraphQL.test.ts` | 19 | Query execution, result storage, variable parsing (valid/invalid JSON), bearer token headers, error handling, history recording, isExecuting lifecycle |
-| `tests/unit/useSchema.test.ts` | 19 | Schema introspection, SDL generation, type counting, computed types, abort handling, retry logic, endpoint change guards, toast notifications |
+| `tests/unit/useSchema.test.ts` | 20 | Schema introspection, SDL generation, type counting, computed types, abort handling, exponential backoff retry, endpoint change guards, toast notifications |
+| `tests/unit/storage-safety.test.ts` | 6 | localStorage quota handling (safePersist), cross-tab synchronization (syncFromStorage for endpoints, workspaces, settings) |
 | `tests/unit/useHistory.test.ts` | 7 | History CRUD, entry limits, localStorage sync, clear |
 | `tests/unit/export-formats.test.ts` | 26 | CSV, Markdown, YAML, TypeScript export — flattening, escaping, edge cases |
 | `tests/api/graphql-proxy.test.ts` | 64 | SSRF blocking (IPv4, IPv6, IPv6-mapped, link-local/metadata, DNS resolution), CRLF header injection, header sanitization, origin validation, URL checks, shell escape for CURL copy, redirect protection, **bearer token security** (token forwarding, header stripping, cookie/host/IP-spoof prevention, HTTPS enforcement) |
@@ -568,12 +573,16 @@ graphql-playground/
 │   │   └── SchemaTypeDetail.vue  # Expandable type detail view
 │   ├── composables/
 │   │   ├── useGraphQL.ts         # Query execution logic
-│   │   ├── useSchema.ts          # Schema introspection + parsing
+│   │   ├── useSchema.ts          # Schema introspection + parsing (exponential backoff)
 │   │   └── useHistory.ts         # Query history management
+│   ├── plugins/
+│   │   └── storage-sync.client.ts # Cross-tab localStorage synchronization
 │   ├── stores/
 │   │   ├── endpoints.ts          # Pinia store: saved endpoints
 │   │   ├── workspace.ts          # Pinia store: per-endpoint workspaces
 │   │   └── settings.ts           # Pinia store: user preferences
+│   ├── utils/
+│   │   └── storage.ts            # Safe localStorage writes with quota handling
 │   ├── types/
 │   │   └── index.ts              # TypeScript interfaces
 │   ├── pages/
@@ -596,6 +605,7 @@ graphql-playground/
 ├── vitest.config.ts              # Vitest configuration
 ├── tsconfig.json                 # TypeScript configuration
 ├── package.json                  # Dependencies and scripts
+├── CHANGELOG.md                  # Version history (semantic versioning)
 ├── LICENSE                       # MIT license
 ├── .nvmrc                        # Node.js version (22.14.0)
 └── yarn.lock                     # Dependency lock file
@@ -617,7 +627,7 @@ graphql-playground/
 | [Pinia](https://pinia.vuejs.org) | 3.x | State management with localStorage persistence |
 | [splitpanes](https://antoniandre.github.io/splitpanes/) | 4.x | Resizable split pane layout |
 | [Nitro](https://nitro.build) | 2.13.x | Server engine (powers the proxy function) |
-| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (251 tests) |
+| [Vitest](https://vitest.dev) | 4.x | Unit, component, and API testing (262 tests) |
 | [ESLint](https://eslint.org) | 10.x | Linting via [@nuxt/eslint](https://eslint.nuxt.com/) with Prettier integration |
 | [Prettier](https://prettier.io) | 3.x | Code formatting (no semis, single quotes, 120 char width) |
 | [Netlify](https://www.netlify.com) | — | Hosting (static files + serverless functions) |

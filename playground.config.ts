@@ -37,7 +37,7 @@ export const playgroundConfig = {
       'A modern, self-hosted GraphQL IDE with schema-aware autocomplete, multi-endpoint workspaces, bearer token auth, and a built-in CORS proxy.',
 
     /** Semver version string. Bump when you release changes. */
-    version: '1.1.0',
+    version: '1.2.0',
 
     /** Public GitHub repository URL (shown in settings). */
     repository: 'https://github.com/ICJIA/graphql-playground',
