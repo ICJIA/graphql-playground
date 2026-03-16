@@ -73,7 +73,7 @@ export const playgroundConfig = {
       description: 'ICJIA Research Hub — articles, publications, and datasets — no auth required',
       /** Sample query pre-loaded when the user clicks this endpoint. */
       exampleQuery:
-        '{\n  articles(\n    pagination: { limit: 50 }\n    sort: "date:desc"\n  ) {\n    title\n    abstract\n    date\n    splash {\n      url\n    }\n  }\n}'
+        '{\n  articles(\n    pagination: { limit: 50 }\n    sort: "date:desc"\n  ) {\n    title\n    abstract\n    date\n    splash {\n      url\n    }\n    thumbnail {\n      url\n    }\n    createdAt\n    tags\n  }\n}'
     },
     {
       url: 'https://rickandmortyapi.com/graphql',
